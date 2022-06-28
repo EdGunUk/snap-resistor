@@ -1,32 +1,62 @@
 import {useCallback} from "react";
-import Snap from "snapsvg-cjs";
+import * as utils from "./utils/svg";
+import Gui from "./api/gui";
 
 function App() {
     const snapRef = useCallback(node => {
         if (node !== null) {
-            const paper = Snap(node);
+            const gui = new Gui(node,[
+                {
+                    icon: 'pin',
+                    action() {
+                        console.log('Pinning...')
+                    }
+                },
+                {
+                    icon: 'search',
+                    action() {
+                        console.log('Opening Search...')
+                    }
+                },
+                {
+                    icon: 'cloud',
+                    action() {
+                        console.log('Connecting to Cloud...')
+                    }
+                },
+                {
+                    icon: 'settings',
+                    action() {
+                        console.log('Opening Settings...')
+                    }
+                },
+                {
+                    icon: 'rewind',
+                    action() {
+                        console.log('Rewinding...')
+                    }
+                },
+                {
+                    icon: 'preview',
+                    action() {
+                        console.log('Preview Activated')
+                    }
+                },
+                {
+                    icon: 'delete',
+                    action() {
+                        console.log('Deleting...')
+                    }
+                }
+            ])
 
-            const style = {
-                fill: '#318199',
-                stroke: '#444',
-                strokeWidth: 4
-            }
-
-            const circle = paper
-                .circle(200, 200, 60)
-                .attr(style)
-
-            const rect = paper
-                .rect(300, 150, 100, 100)
-                .attr(style)
-
-            const group = paper
-                .g(circle, rect)
-                .attr({opacity: .5, strokeOpacity: .5})
-                .drag(function (dx) {
-                    this.transform(`r${dx}, 350 200`)
+            gui.paper
+                .path(utils.describeArc(250, 200, 120, 0, 45))
+                .attr({
+                    fill: 'transparent',
+                    stroke: '#fff',
+                    strokeWidth: 4
                 })
-
         }
     }, []);
 
