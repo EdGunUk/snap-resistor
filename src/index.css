@@ -7,7 +7,51 @@ body {
   width: 100vh;
   height: 100vh;
   overflow: hidden;
-  background-image: url("assets/img/texture.jpeg");
+  background-image: url("assets/texture.jpeg");
   background-position: center;
   background-size: cover;
+}
+
+.hide {
+  display: none;
+}
+
+.radialnav {
+  user-select: none;
+}
+
+.radialnav-sector.active {
+  fill: rgba(255, 255, 255, .7);
+}
+
+.radialnav-sector {
+  fill: rgba(255, 255, 255, .1);
+  stroke: rgba(255, 255, 255, .4);
+  stroke-width: 1;
+  transition: all .4s;
+}
+
+.radialnav-icon {
+  pointer-events: none;
+  fill: transparent;
+  stroke: #fff;
+  stroke-width: 1.2;
+  transition: all .4s;
+}
+
+.radialnav-icon.active {
+  stroke: #333;
+}
+
+.radialnav-hint {
+  fill: #eee;
+  font: bold .75em 'PT Sans', Arial, sans-serif;
+  text-anchor: middle;
+  text-transform: uppercase;
+  opacity: 0;
+  transition: all .4s;
+}
+
+.radialnav-hint.active {
+  opacity: 1;
 }

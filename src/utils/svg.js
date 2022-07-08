@@ -6,10 +6,16 @@ export const polarToCartesian = function (cx, cy, r, angle) {
     return {x, y}
 }
 
-export const describeArc = function (x, y, r, startAngle, endAngle) {
+export const describeArc = function (x, y, r, startAngle, endAngle, continueLine) {
     const start = polarToCartesian(x, y, r, startAngle % 360);
     const end = polarToCartesian(x, y, r, endAngle % 360);
     const large = Math.abs(startAngle - endAngle) >= 180;
+    const sweep = endAngle > startAngle;
 
-    return `M${start.x} ${start.y} A ${r} ${r} 0 ${large ? 1 : 0} 1 ${end.x} ${end.y}`
+    return `${continueLine ? 'L' : 'M'} ${start.x} ${start.y} A ${r} ${r} 0 ${large ? 1 : 0} ${sweep ? 1 : 0} ${end.x} ${end.y}`
+}
+
+export const describeSector = function (x, y, r, r2, startAngle, endAngle) {
+    return `${describeArc(x, y, r, startAngle, endAngle)}
+    ${describeArc(x, y, r2, endAngle, startAngle, true)} Z`
 }
