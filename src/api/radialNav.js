@@ -1,4 +1,4 @@
-import {describeSector, describeArc} from "../utils/svg";
+import {describeSector, describeArc, animate} from "../utils/svg";
 
 class RadialNav {
     #areaSize = 300;
@@ -35,9 +35,41 @@ class RadialNav {
             }
         }
 
+
         return this.area
             .g(sector, icon, hint)
             .hover(onHover, onHover)
+            .hover(this.#buttonOver(), this.#buttonOut())
+    }
+
+    #animateButtonHover(button, start, end, duration, easing, cb) {
+        console.log(this, 'this')
+        console.log(button)
+
+        animate(button, 1, start, end, duration, easing, (function (val) {
+            button[0].attr({d: describeSector(this.c, this.c, this.r - val * 10, this.r2, 0, this.angle)})
+        }))
+    }
+
+    #buttonOver() {
+        const context = this;
+
+        return function () {
+            context.#animateButtonHover(this, 0, 1, 200, window.mina.easeinout)
+            this[2].removeClass('hide')
+        }
+
+
+    }
+
+    #buttonOut() {
+        const context = this;
+
+        return function () {
+            context.#animateButtonHover(this, 1, 0, 2000, window.mina.elastic, function () {
+                this[2].removeClass('hide').bind(this[2])
+            })
+        }
     }
 
     #hint(button) {

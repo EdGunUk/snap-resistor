@@ -10,6 +10,7 @@ body {
   background-image: url("assets/texture.jpeg");
   background-position: center;
   background-size: cover;
+  cursor: pointer;
 }
 
 .hide {
