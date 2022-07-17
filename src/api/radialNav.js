@@ -11,8 +11,10 @@ class RadialNav {
         this.r = this.#areaSize * .12;
         this.r2 = this.#areaSize * .25;
         this.angle = 360 / buttons.length;
+        this.animDuration = 300;
 
         this.container = this.area.g()
+        // this.container.transform = "s0"
         this.updateButtons(buttons, icons)
 
     }
@@ -25,6 +27,12 @@ class RadialNav {
         return this.area
             .path(describeSector(this.c, this.c, this.r, this.r2, 0, this.angle))
             .addClass('radialnav-sector')
+    }
+
+    #animateContainer(start, end, duration, easing) {
+        animate(this, 0, start, end, duration, easing, (val) => {
+            this.container.transform(`S${val} ${this.c} ${this.c}`)
+        })
     }
 
     #button(button, sector, icon, hint) {
@@ -43,12 +51,10 @@ class RadialNav {
     }
 
     #animateButtonHover(button, start, end, duration, easing, cb) {
-        console.log(this, 'this')
-        console.log(button)
-
-        animate(button, 1, start, end, duration, easing, (function (val) {
-            button[0].attr({d: describeSector(this.c, this.c, this.r - val * 10, this.r2, 0, this.angle)})
-        }))
+        animate(button, 1, start, end, duration, easing, ((val) => {
+            button[0].attr({d: describeSector(this.c, this.c, this.r, this.r2 - val * 5, 0, this.angle)})
+            button[2].transform(`S${1.1 - val * .1} ${this.c} ${this.c}`)
+        }), cb)
     }
 
     #buttonOver() {
@@ -66,8 +72,8 @@ class RadialNav {
         const context = this;
 
         return function () {
-            context.#animateButtonHover(this, 1, 0, 2000, window.mina.elastic, function () {
-                this[2].removeClass('hide').bind(this[2])
+            context.#animateButtonHover(this, 1, 0, 2000, window.mina.elastic, () => {
+                this[2].removeClass('hide')
             })
         }
     }
@@ -111,9 +117,24 @@ class RadialNav {
         buttons.forEach((button, i) => {
             const btn = this.#button(button, this.#sector(), RadialNav.#icon(button, icons), this.#hint(button))
             this.updateIcon(button)
-            btn.transform(`r${this.angle * i} ${this.c} ${this.c}`)
+            btn.transform(`R${this.angle * i} ${this.c} ${this.c}`)
             this.container.add(btn)
         })
+    }
+
+    show(e) {
+        this.area
+            .attr({
+                x: e.clientX - this.c,
+                y: e.clientY - this.c
+
+            })
+
+        this.#animateContainer(0, 1, this.animDuration * 8, window.mina.elastic)
+    }
+
+    hide() {
+        console.log('hide');
     }
 }
 

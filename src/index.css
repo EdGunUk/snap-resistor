@@ -45,7 +45,7 @@ body {
 }
 
 .radialnav-hint {
-  fill: #eee;
+  fill: #444;
   font: bold .75em 'PT Sans', Arial, sans-serif;
   text-anchor: middle;
   text-transform: uppercase;
