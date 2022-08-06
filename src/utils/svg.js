@@ -33,3 +33,8 @@ export const animate = function (obj, index, start, end, duration, easing, fn, c
 
     return obj.animation[index] = Snap.animate(start, end, fn, duration, easing, cb)
 }
+export const getRandom = function (min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1) + min); //The maximum is inclusive and the minimum is inclusive
+}

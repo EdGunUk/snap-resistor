@@ -1,4 +1,4 @@
-import {describeSector, describeArc, animate} from "../utils/svg";
+import {describeSector, describeArc, animate, getRandom} from "../utils/svg";
 
 class RadialNav {
     #areaSize = 300;
@@ -6,7 +6,7 @@ class RadialNav {
     constructor(paper, buttons, icons) {
         this.area = paper
             .svg(0, 0, this.#areaSize, this.#areaSize)
-            .addClass('radialnav');
+            .addClass('radialnav hide');
         this.c = this.#areaSize / 2;
         this.r = this.#areaSize * .12;
         this.r2 = this.#areaSize * .25;
@@ -14,7 +14,6 @@ class RadialNav {
         this.animDuration = 300;
 
         this.container = this.area.g()
-        // this.container.transform = "s0"
         this.updateButtons(buttons, icons)
 
     }
@@ -29,10 +28,14 @@ class RadialNav {
             .addClass('radialnav-sector')
     }
 
-    #animateContainer(start, end, duration, easing) {
+    #animateContainer(start, end, duration, easing, cb) {
+        const BASE_ROTATE = 90;
+        const random = getRandom(0, 1);
+        const baseDirection = random ? BASE_ROTATE : -BASE_ROTATE;
+
         animate(this, 0, start, end, duration, easing, (val) => {
-            this.container.transform(`S${val} ${this.c} ${this.c}`)
-        })
+            this.container.transform(`R${baseDirection - val * baseDirection} S${val} ${this.c} ${this.c}`)
+        }, cb)
     }
 
     #button(button, sector, icon, hint) {
@@ -73,7 +76,7 @@ class RadialNav {
 
         return function () {
             context.#animateButtonHover(this, 1, 0, 2000, window.mina.elastic, () => {
-                this[2].removeClass('hide')
+                this[2].addClass('hide')
             })
         }
     }
@@ -108,7 +111,7 @@ class RadialNav {
         const y = this.c - this.r - (this.r2 - this.r) / 2 - box.y - box.height / 2;
         const angle = this.angle / 2;
 
-        icon.transform(`T ${x} ${y} R ${angle} ${this.c} ${this.c}`)
+        icon.transform(`T${x} ${y} R${angle} ${this.c} ${this.c}`)
     }
 
     updateButtons(buttons, icons) {
@@ -131,10 +134,13 @@ class RadialNav {
             })
 
         this.#animateContainer(0, 1, this.animDuration * 8, window.mina.elastic)
+        this.area.removeClass('hide')
     }
 
     hide() {
-        console.log('hide');
+        this.#animateContainer(1, 0, this.animDuration, window.mina.easeinout, () => {
+            this.area.addClass('hide')
+        })
     }
 }
 
