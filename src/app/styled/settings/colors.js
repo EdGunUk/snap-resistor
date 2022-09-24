@@ -1,2 +1,13 @@
 export const WHITE = '#fff';
-export const SILVER_CHALICE = '#A8A8A8';
+export const SILVER = '#c0c0c0';
+export const GOLD = '#ffd700'
+export const BLACK = '#000';
+export const BROWN = '#964b00';
+export const RED = '#f00';
+export const ORANGE = '#ffa500';
+export const YELLOW = '#ff0';
+export const GREEN = '#0f0';
+export const BLUE = '#00f';
+export const PURPLE = '#bF40bf';
+export const GRAY = '#808080';
+export const TRANSPARENT = 'transparent';

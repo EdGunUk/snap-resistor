@@ -7,6 +7,4 @@ export const StopStyled = styled.stop`
 
 export const RectStyled = styled(FullSizeContainer)`
   fill: url(#gradient);
-  height: 100vh;
-  width: 100vw;
 `;
