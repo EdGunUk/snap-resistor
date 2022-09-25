@@ -26,28 +26,27 @@ export const calculateRectangleSize = (resistorSize, spaceSize, count) => {
     return (resistorSize - spacesSize) / count;
 }
 
-export const calculateRectangleCoords = (squareSize, spaceSize, count, index) => {
-    const isLastIndex = index === count - 1;
-    const fullSize = (squareSize + spaceSize) * index;
-
-    return  isLastIndex ? fullSize - spaceSize : fullSize;
+export const calculateRectangleCoords = (squareSize, spaceSize, index) => {
+    return (squareSize + spaceSize) * index;
 }
 
 export const updateConfig = (config, resistorWidth, resistorHeight) => {
-    const squareWidth = calculateRectangleSize(resistorWidth, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, config.length);
-    const squareHeight = calculateRectangleSize(resistorHeight, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, sizes.COUNT_COLORED_SQUARE_X_AXIOS);
+    const width = calculateRectangleSize(resistorWidth, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, config.length);
+    const height = calculateRectangleSize(resistorHeight, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, sizes.COUNT_COLORED_SQUARE_X_AXIOS);
 
     return config.map((band, index) => {
-        const x = calculateRectangleCoords(squareWidth, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, config.length, index);
+        const x = calculateRectangleCoords(width, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, index);
 
         return band.map((rectangle, index) => {
-            const y = calculateRectangleCoords(squareHeight, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, band.length, index);
+            const y = calculateRectangleCoords(height, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, index);
 
             return {
-                ...rectangle,
-                id: uniqid(),
                 x,
                 y,
+                width,
+                height,
+                id: uniqid(),
+                ...rectangle,
             }
         })
     })

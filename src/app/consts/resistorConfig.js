@@ -56,7 +56,7 @@ const MULTIPLIER = [
         value: 10
     },
     {
-        color: colors.BROWN,
+        color: colors.RED,
         unit: units.OHM,
         value: 100
     },
