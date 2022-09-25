@@ -2,7 +2,7 @@ import {useRef, useState} from "react";
 import Rectangle from "../Rectangle/rectangle";
 import {Group} from "./styled";
 
-const Band = ({data}) => {
+const Band = ({id, data}) => {
     const [translateY, setTranslateY] = useState(0);
     const dragData = useRef({
         toggle: false,
@@ -34,6 +34,7 @@ const Band = ({data}) => {
 
     return (
         <Group
+            data-band-id={id}
             translateY={translateY}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}

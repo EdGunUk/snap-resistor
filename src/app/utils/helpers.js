@@ -30,7 +30,7 @@ export const calculateRectangleCoords = (squareSize, spaceSize, index) => {
     return (squareSize + spaceSize) * index;
 }
 
-export const updateConfig = (config, resistorWidth, resistorHeight) => {
+export const getFullConfig = (config, resistorWidth, resistorHeight) => {
     const width = calculateRectangleSize(resistorWidth, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, config.length);
     const height = calculateRectangleSize(resistorHeight, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, sizes.COUNT_COLORED_SQUARE_X_AXIOS);
 
