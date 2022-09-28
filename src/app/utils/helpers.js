@@ -1,14 +1,16 @@
 import * as sizes from "../consts/sizes";
 import uniqid from 'uniqid';
 
-export const calculateResistorSize = (windowSize, isFullWidth, isFullHeight) => {
+export const checkIsFullScreen = (width) => (width <= sizes.RESISTOR_WIDTH);
+
+export const calculateResistorSize = (windowSize, isFullScreen) => {
     const {width, height} = windowSize;
 
     return {
-        x: isFullWidth ? 0 : (width - sizes.RESISTOR_WIDTH) / 2,
-        y: isFullHeight ? 0 : (height - sizes.RESISTOR_HEIGHT) / 2,
-        width: isFullWidth ? width : sizes.RESISTOR_WIDTH,
-        height: isFullHeight ? height : sizes.RESISTOR_HEIGHT
+        x: isFullScreen ? 0 : (width - sizes.RESISTOR_WIDTH) / 2,
+        y:  (height - sizes.RESISTOR_HEIGHT) / 2,
+        width: isFullScreen ? width : sizes.RESISTOR_WIDTH,
+        height: sizes.RESISTOR_HEIGHT
     };
 }
 
@@ -30,7 +32,7 @@ export const calculateRectangleCoords = (squareSize, spaceSize, index) => {
     return (squareSize + spaceSize) * index;
 }
 
-export const getFullConfig = (config, resistorWidth, resistorHeight) => {
+export const getBaseConfig = (config, resistorWidth, resistorHeight) => {
     const width = calculateRectangleSize(resistorWidth, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, config.length);
     const height = calculateRectangleSize(resistorHeight, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, sizes.COUNT_COLORED_SQUARE_X_AXIOS);
 
@@ -50,4 +52,14 @@ export const getFullConfig = (config, resistorWidth, resistorHeight) => {
             }
         })
     })
+}
+
+export const updateConfig = ({baseConfig, config, bandId, translateY}) => {
+    const configClone = [...config];
+
+    configClone[bandId] = baseConfig[bandId].map(rectangle => {
+        return {...rectangle, y: rectangle.y + translateY};
+    });
+
+    return configClone
 }
