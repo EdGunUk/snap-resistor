@@ -1,6 +1,6 @@
 import BackgroundGradient from "../BackgroundGradient/backgroundGradient";
 import Resistor from "../Resistor/resistor";
-import {useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {FullSizeContainer} from "../../styled/objects/containers";
 import {Main} from "../Main/styled";
 import {calculateResistorSize, checkIsFullScreen, getBaseConfig, updateConfig} from "../../utils/helpers";
@@ -11,34 +11,19 @@ import * as resistorConfig from "../../consts/resistorConfig";
 const App = () => {
     const windowSize = useWindowSize();
     const isFullScreen = checkIsFullScreen(windowSize.width);
-    const resistorSize = calculateResistorSize(windowSize, isFullScreen);
-    const baseConfig = getBaseConfig(resistorConfig.FORE_BAND, resistorSize.width, resistorSize.height)
+    const resistorSize = useMemo(() => calculateResistorSize(windowSize, isFullScreen), [windowSize, isFullScreen]);
+    const baseConfig = useMemo(() => getBaseConfig(resistorConfig.FORE_BAND, resistorSize.width, resistorSize.height), [resistorSize.width, resistorSize.height]);
     const [config, setConfig] = useState(baseConfig);
     const dragData = useRef({
-        baseConfig,
         bandId: null,
         translateY: 0,
         startClientY: 0,
         bandsEndTranslateY: [],
     });
 
-    // useEffect(() => {
-    //     const {current} = dragData;
-    //
-    //     const ttt = baseConfig.map((band, index) => {
-    //         const currentEndTranslateY = current.endTranslateY[index] ?? 0;
-    //         return band.map(rect => {
-    //
-    //             return {
-    //                 ...rect,
-    //                 y: rect.y + currentEndTranslateY
-    //             }
-    //         })
-    //     })
-    //
-    //     setConfig(ttt);
-    //     current.baseConfig = baseConfig;
-    // }, [windowSize.width, windowSize.height])
+    useEffect(() => {
+        setConfig((config) => updateConfig({baseConfig, config}));
+    }, [baseConfig])
 
     const handlePointerDown = (e) => {
         const band = e.target.closest('g[data-band-id]');
@@ -51,13 +36,13 @@ const App = () => {
 
     const handlePointerMove = (e) => {
         const {current} = dragData;
-        const {baseConfig, bandId, startClientY, bandsEndTranslateY} = current;
+        const {bandId, startClientY, bandsEndTranslateY} = current;
         if (!bandId) return;
 
         const endTranslateY = bandsEndTranslateY[bandId] ?? 0;
         const translateY = e.clientY - startClientY + endTranslateY;
 
-        setConfig(updateConfig({baseConfig, config, bandId, translateY}));
+        setConfig((config) => updateConfig({baseConfig, config, bandId, translateY}));
         current.translateY = translateY;
     }
 

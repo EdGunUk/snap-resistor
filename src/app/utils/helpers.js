@@ -8,7 +8,7 @@ export const calculateResistorSize = (windowSize, isFullScreen) => {
 
     return {
         x: isFullScreen ? 0 : (width - sizes.RESISTOR_WIDTH) / 2,
-        y:  (height - sizes.RESISTOR_HEIGHT) / 2,
+        y: (height - sizes.RESISTOR_HEIGHT) / 2,
         width: isFullScreen ? width : sizes.RESISTOR_WIDTH,
         height: sizes.RESISTOR_HEIGHT
     };
@@ -54,12 +54,29 @@ export const getBaseConfig = (config, resistorWidth, resistorHeight) => {
     })
 }
 
-export const updateConfig = ({baseConfig, config, bandId, translateY}) => {
-    const configClone = [...config];
+export const updateConfig = (props) => {
+    const {baseConfig, config, bandId, translateY} = props;
+    const isNeedUpdateAllBand = 'bandId' in props && 'translateY' in props;
 
-    configClone[bandId] = baseConfig[bandId].map(rectangle => {
-        return {...rectangle, y: rectangle.y + translateY};
-    });
+    if (isNeedUpdateAllBand) {
+        const configClone = [...config];
+        configClone[bandId] = baseConfig[bandId].map((rectangle) => ({...rectangle, y: rectangle.y + translateY}));
 
-    return configClone
+        return configClone
+    }
+
+    return config.map((band, index) => {
+        const baseBand = baseConfig[index];
+
+        return band.map((rectangle, index) => {
+            const {x, width, height} = baseBand[index];
+
+            return {
+                ...rectangle,
+                x,
+                width,
+                height,
+            }
+        })
+    })
 }
