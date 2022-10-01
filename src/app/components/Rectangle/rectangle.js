@@ -1,10 +1,7 @@
-const Rectangle = ({x, y, id, width, height, color}) => {
+const Rectangle = ({id, color, pathData}) => {
     return (
-        <rect
-            x={x}
-            y={y}
-            width={width}
-            height={height}
+        <path
+            d={pathData}
             fill={color}
             data-rectangle-id={id}
         />
