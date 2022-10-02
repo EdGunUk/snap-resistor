@@ -4,14 +4,16 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import {Main} from "../Main/styled";
 import {calculateResistorSize, checkIsFullScreen, getBaseConfig, updateConfig} from "../../utils/helpers";
 import useWindowSize from "../../hooks/useWindowSize";
-import * as resistorConfig from "../../consts/resistorConfig";
+import * as resistorConfigs from "../../consts/resistorConfigs";
+import * as cursorTypes from "../../consts/cursorTypes";
 
 
 const App = () => {
     const windowSize = useWindowSize();
     const isFullScreen = checkIsFullScreen(windowSize.width);
     const resistorSize = useMemo(() => calculateResistorSize(windowSize, isFullScreen), [windowSize, isFullScreen]);
-    const baseConfig = useMemo(() => getBaseConfig(resistorConfig.FORE_BAND, resistorSize.width, resistorSize.height), [resistorSize.width, resistorSize.height]);
+    const baseConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorSize.width, resistorSize.height), [resistorSize.width, resistorSize.height]);
+    const [cursor, setCursor] = useState(cursorTypes.AUTO);
     const [config, setConfig] = useState(baseConfig);
     const dragData = useRef({
         bandId: null,
@@ -29,6 +31,7 @@ const App = () => {
         if (!band) return;
 
         const {current} = dragData;
+        setCursor(cursorTypes.NS_RESIZE);
         current.startClientY = e.clientY;
         current.bandId = band.getAttribute('data-band-id');
     }
@@ -50,13 +53,16 @@ const App = () => {
         const {bandId, bandsEndTranslateY} = current;
         if (!bandId) return;
 
+        setCursor(cursorTypes.AUTO);
         bandsEndTranslateY[bandId] = current.translateY;
         current.bandId = null;
     }
 
 
+
     return (
         <Main
+            cursor={cursor}
             onPointerDown={handlePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
