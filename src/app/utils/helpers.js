@@ -46,16 +46,15 @@ export const getBaseConfig = (config, resistorWidth, resistorHeight) => {
 
         return band.map((rectangle, index) => {
             const y = calculateRectangleCoords(height, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, index);
-            const pathData = calculatePathData({x, y, width, height})
+            const coords = {x, y, width, height};
+            const pathData = calculatePathData(coords);
+            const id = uniqid();
 
             return {
-                x,
-                y,
-                width,
-                height,
-                pathData,
-                id: uniqid(),
                 ...rectangle,
+                ...coords,
+                pathData,
+                id
             }
         })
     })
@@ -67,15 +66,16 @@ export const updateConfig = (props) => {
 
     if (isNeedUpdateCurrentBand) {
         const configClone = [...config];
+
         configClone[bandId] = baseConfig[bandId].map((rectangle) => {
-            const y = rectangle.y + translateY;
-            const {x, width, height} = rectangle;
-            const pathData = calculatePathData({x, y, width, height});
+            const {x, y, width, height} = rectangle;
+            const coords = {x, y: y + translateY, width, height};
+            const pathData = calculatePathData(coords);
 
             return {
                 ...rectangle,
+                ...coords,
                 pathData,
-                y,
             };
         });
 
@@ -86,17 +86,15 @@ export const updateConfig = (props) => {
         const baseBand = baseConfig[index];
 
         return band.map((rectangle, index) => {
-            const {y} = rectangle;
             const {x, width, height} = baseBand[index];
-            const pathData = calculatePathData({x, y, width, height});
+            const coords = {x, y: rectangle.y, width, height};
+            const pathData = calculatePathData(coords);
 
             return {
                 ...rectangle,
-                x,
-                width,
-                height,
-                pathData
-            }
+                ...coords,
+                pathData,
+            };
         })
     })
 }
