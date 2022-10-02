@@ -1,7 +1,6 @@
 import BackgroundGradient from "../BackgroundGradient/backgroundGradient";
 import Resistor from "../Resistor/resistor";
 import {useEffect, useMemo, useRef, useState} from "react";
-import {FullSizeContainer} from "../../styled/objects/containers";
 import {Main} from "../Main/styled";
 import {calculateResistorSize, checkIsFullScreen, getBaseConfig, updateConfig} from "../../utils/helpers";
 import useWindowSize from "../../hooks/useWindowSize";
@@ -62,10 +61,8 @@ const App = () => {
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
         >
-            <FullSizeContainer as="svg">
-                <BackgroundGradient/>
-                <Resistor {...resistorSize} config={config}/>
-            </FullSizeContainer>
+            <BackgroundGradient/>
+            <Resistor {...resistorSize} config={config}/>
         </Main>
     );
 }

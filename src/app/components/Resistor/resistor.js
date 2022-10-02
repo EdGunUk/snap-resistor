@@ -1,10 +1,8 @@
 import Band from "../Band/band";
 
-const Resistor = ({x, y, width, height, config}) => {
+const Resistor = ({width, height, config}) => {
     return (
         <svg
-            x={x}
-            y={y}
             width={width}
             height={height}
         >

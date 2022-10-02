@@ -1,15 +1,15 @@
-import {RectStyled, StopStyled} from "./styled";
+import {Container, Rect, Stop} from "./styled";
 import * as colors from "../../styled/settings/colors"
 
 const BackgroundGradient = () => {
     return (
-        <>
+        <Container as="svg">
             <radialGradient id="gradient" r='100%'>
-                <StopStyled stopColor={colors.WHITE} offset="0%"/>
-                <StopStyled stopColor={colors.GRAY} offset="100%"/>
+                <Stop stopColor={colors.WHITE} offset="0%"/>
+                <Stop stopColor={colors.GRAY} offset="100%"/>
             </radialGradient>
-            <RectStyled as="rect" x="0" y="0"/>
-        </>
+            <Rect as="rect" x="0" y="0"/>
+        </Container>
     );
 }
 
