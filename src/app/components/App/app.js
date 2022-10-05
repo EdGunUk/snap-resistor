@@ -2,17 +2,18 @@ import BackgroundGradient from "../BackgroundGradient/backgroundGradient";
 import Resistor from "../Resistor/resistor";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {Main} from "../Main/styled";
-import {calculateResistorSize, checkIsFullScreen, getBaseConfig, updateConfig} from "../../utils/helpers";
+import {calculateResistorWidth, getBaseConfig, updateConfig} from "../../utils/helpers";
 import useWindowSize from "../../hooks/useWindowSize";
 import * as resistorConfigs from "../../consts/resistorConfigs";
 import * as cursorTypes from "../../consts/cursorTypes";
+import * as sizes from "../../consts/sizes";
 
 
 const App = () => {
     const windowSize = useWindowSize();
-    const isFullScreen = checkIsFullScreen(windowSize.width);
-    const resistorSize = useMemo(() => calculateResistorSize(windowSize, isFullScreen), [windowSize, isFullScreen]);
-    const baseConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorSize.width, resistorSize.height), [resistorSize.width, resistorSize.height]);
+    const resistorHeight = sizes.RESISTOR_HEIGHT;
+    const resistorWidth = useMemo(() => calculateResistorWidth(windowSize.width), [windowSize.width]);
+    const baseConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorWidth), [resistorWidth]);
     const [cursor, setCursor] = useState(cursorTypes.AUTO);
     const [config, setConfig] = useState(baseConfig);
     const dragData = useRef({
@@ -59,7 +60,6 @@ const App = () => {
     }
 
 
-
     return (
         <Main
             cursor={cursor}
@@ -68,7 +68,7 @@ const App = () => {
             onPointerUp={handlePointerUp}
         >
             <BackgroundGradient/>
-            <Resistor {...resistorSize} config={config}/>
+            <Resistor height={resistorHeight} width={resistorWidth}  config={config}/>
         </Main>
     );
 }

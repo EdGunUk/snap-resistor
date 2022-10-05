@@ -1,17 +1,15 @@
 import * as sizes from "../consts/sizes";
 import uniqid from 'uniqid';
 
-export const checkIsFullScreen = (width) => (width <= sizes.RESISTOR_WIDTH);
+export const checkIsFullWidth = (width) => {
+    return width <= sizes.RESISTOR_WIDTH;
+}
 
-export const calculateResistorSize = (windowSize, isFullScreen) => {
-    const {width, height} = windowSize;
+export const calculateResistorWidth = (windowWidth) => {
+    const isFullWidth = checkIsFullWidth(windowWidth);
 
-    return {
-        x: isFullScreen ? 0 : (width - sizes.RESISTOR_WIDTH) / 2,
-        y: (height - sizes.RESISTOR_HEIGHT) / 2,
-        width: isFullScreen ? width : sizes.RESISTOR_WIDTH,
-        height: sizes.RESISTOR_HEIGHT
-    };
+    return isFullWidth ? windowWidth : sizes.RESISTOR_WIDTH;
+
 }
 
 export const calculateResistorValue = (props) => {
@@ -32,20 +30,24 @@ export const calculateRectangleCoords = (squareSize, spaceSize, index) => {
     return (squareSize + spaceSize) * index;
 }
 
-export const calculatePathData = ({x, y, width, height, distanceToSelectLine}) => {
+export const calculateYSelectionBand = () => {
+    return (sizes.RESISTOR_HEIGHT - sizes.RECTANGLE_HEIGHT) / 2;
+}
+export const calculatePathData = ({x, y, width, height}) => {
     // return `M${x} ${y} l${width} ${0} l${0} ${-height} l${-width} ${0} z`;
     return `M${x} ${y} L${x + width} ${y} ${x + width} ${y + height} ${x} ${y + height} Z`;
 }
 
-export const getBaseConfig = (config, resistorWidth, resistorHeight) => {
-    const width = calculateRectangleSize(resistorWidth, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, config.length);
-    const height = calculateRectangleSize(resistorHeight, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, sizes.COUNT_COLORED_SQUARE_X_AXIOS);
+export const getBaseConfig = (config, resistorWidth) => {
+    const width = calculateRectangleSize(resistorWidth, sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS, config.length);
+    const ySelectionBand = calculateYSelectionBand();
+    const height = sizes.RECTANGLE_HEIGHT;
 
     return config.map((band, index) => {
-        const x = calculateRectangleCoords(width, sizes.SPASE_BETWEEN_COLORED_SQUARE_X_AXIOS, index);
+        const x = calculateRectangleCoords(width, sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS, index);
 
         return band.map((rectangle, index) => {
-            const y = calculateRectangleCoords(height, sizes.SPASE_BETWEEN_COLORED_SQUARE_Y_AXIOS, index);
+            const y = calculateRectangleCoords(height, sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS, index);
             const coords = {x, y, width, height};
             const pathData = calculatePathData(coords);
             const id = uniqid();
