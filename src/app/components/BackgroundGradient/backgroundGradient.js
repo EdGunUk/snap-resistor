@@ -1,10 +1,10 @@
 import {Container, Rect, Stop} from "./styled";
 import * as colors from "../../styled/settings/colors"
-import {useEffect} from "react";
+import {useLayoutEffect} from "react";
 
 const BackgroundGradient = () => {
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const meta = document.querySelector('meta[name=theme-color]');
         meta.setAttribute('content', colors.LIGHT_SILVER)
     }, []);

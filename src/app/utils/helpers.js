@@ -40,12 +40,12 @@ export const calculateRectangleCoords = (squareSize, spaceSize, index) => {
 export const calculateYSelectionRectangle = () => {
     return (sizes.RESISTOR_HEIGHT - sizes.RECTANGLE_HEIGHT) / 2;
 }
-export const calculatePathData = ({x, y, width, height}) => {
-    // return `M${x} ${y} l${width} ${0} l${0} ${-height} l${-width} ${0} z`;
-    return `M${x} ${y} L${x + width} ${y} ${x + width} ${y + height} ${x} ${y + height} Z`;
+export const calculatePathData = ({x, y, width, height}, widthShrinkValue, prevWidthShrinkValue) => {
+    // return `M${x} ${y} l${x} ${0} l${0} ${-height} l${-width} ${0} z`;
+    return `M${x + prevWidthShrinkValue} ${y} L${x + width - prevWidthShrinkValue} ${y} ${x + width - widthShrinkValue} ${y + height} ${x + widthShrinkValue} ${y + height} Z`;
 }
 
-export const getBaseConfig = (config, resistorWidth, yOffset = 100) => {
+export const getBaseConfig = (config, resistorWidth, yOffset = calculateYSelectionRectangle()) => {
     const width = calculateRectangleSize(resistorWidth, sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS, config.length);
     const ySelectionRectangle = calculateYSelectionRectangle();
     const baseHeight = sizes.RECTANGLE_HEIGHT;
@@ -56,10 +56,12 @@ export const getBaseConfig = (config, resistorWidth, yOffset = 100) => {
 
         return band.map((rectangle) => {
             const distanceToSelectionRectangle = y - ySelectionRectangle;
-            const heightShrinkValue = distanceToSelectionRectangle * sizes.HEIGHT_SHRINK_COEFFICIENT;
+            const heightShrinkValue = Math.abs(distanceToSelectionRectangle * sizes.HEIGHT_SHRINK_COEFFICIENT);
+            const xShrinkValue = Math.pow(distanceToSelectionRectangle * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
             const height = baseHeight - heightShrinkValue;
+            const x1ShrinkValue = Math.pow((distanceToSelectionRectangle - height) * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
             const coords = {x, y, width, height};
-            const pathData = calculatePathData(coords);
+            const pathData = calculatePathData(coords, xShrinkValue, x1ShrinkValue);
             const id = uniqid();
 
             y += height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
@@ -92,10 +94,12 @@ export const updateConfig = (props) => {
             const {x, width} = rectangle;
             const distanceToSelectionRectangle = firstPartY - ySelectionRectangle - baseHeight;
             const heightShrinkValue = Math.abs(distanceToSelectionRectangle * sizes.HEIGHT_SHRINK_COEFFICIENT);
+            const xShrinkValue = Math.pow(distanceToSelectionRectangle * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
             const height = baseHeight - heightShrinkValue;
+            const x1ShrinkValue = Math.pow((distanceToSelectionRectangle - height) * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
             firstPartY -= (height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
             const coords = {x, y: firstPartY, width, height};
-            const pathData = calculatePathData(coords);
+            const pathData = calculatePathData(coords, xShrinkValue, x1ShrinkValue);
 
             return {
                 ...rectangle,
@@ -109,9 +113,11 @@ export const updateConfig = (props) => {
             const {x, width} = rectangle;
             const distanceToSelectionRectangle = secondPartY - ySelectionRectangle;
             const heightShrinkValue = Math.abs(distanceToSelectionRectangle * sizes.HEIGHT_SHRINK_COEFFICIENT);
+            const xShrinkValue = Math.pow(distanceToSelectionRectangle * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
             const height = baseHeight - heightShrinkValue;
+            const x1ShrinkValue = Math.pow((distanceToSelectionRectangle - height) * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
             const coords = {x, y: secondPartY, width, height};
-            const pathData = calculatePathData(coords);
+            const pathData = calculatePathData(coords, xShrinkValue, x1ShrinkValue);
 
             secondPartY += height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
 
