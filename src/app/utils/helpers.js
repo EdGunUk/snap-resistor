@@ -50,6 +50,8 @@ export const getBaseConfig = (config, resistorWidth, yOffset = calculateYSelecti
     const ySelectionRectangle = calculateYSelectionRectangle();
     const baseHeight = sizes.RECTANGLE_HEIGHT;
 
+
+    // TODO get center on every item for smooth scroll
     return config.map((band, index) => {
         const x = calculateRectangleCoords(width, sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS, index);
         let y = yOffset;
