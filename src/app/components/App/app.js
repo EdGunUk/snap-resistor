@@ -23,9 +23,9 @@ const App = () => {
         bandsEndTranslateY: [],
     });
 
-    // useEffect(() => {
-    //     setConfig((config) => updateConfig({baseConfig, config}));
-    // }, [baseConfig])
+    useEffect(() => {
+        setConfig((config) => updateConfig({baseConfig, config}));
+    }, [baseConfig])
 
     const handlePointerDown = (e) => {
         const band = e.target.closest('g[data-band-id]');
