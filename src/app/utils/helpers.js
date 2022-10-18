@@ -2,8 +2,6 @@ import * as sizes from "../consts/sizes";
 import * as deformationTypes from "../consts/deformationTypes";
 import uniqid from 'uniqid';
 
-export const checkEven = n => !(n % 2);
-
 export const checkIsFullWidth = (width) => {
     return width <= sizes.RESISTOR_WIDTH;
 }
@@ -30,10 +28,10 @@ export const divideArr = (arr) => {
     return [firstPart, secondPart, middleIndex];
 }
 
-export const calculateRectangleWidth = (resistorSize, bandCount) => {
-    const spacesSize = (bandCount - 1) * sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS;
+export const calculateRectangleWidth = (resistorSize, count) => {
+    const spacesSize = (count - 1) * sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS;
 
-    return (resistorSize - spacesSize) / bandCount;
+    return (resistorSize - spacesSize) / count;
 }
 
 export const calculateRectangleXCoords = (squareSize, index) => {
@@ -49,6 +47,34 @@ export const calculateSelectionRectangleYCoords = () => {
         center: resistorYCenter,
         bottom: resistorYCenter + rectangleYCenter
     }
+}
+
+export const getDeformationConfig = (count) => {
+    const halfCount = (count - 1) / 2;
+    const halfCountFloor = Math.floor(halfCount);
+    const halfCountCeil = Math.ceil(halfCount);
+
+    return Array.from({length: count}, (i, index) => {
+        if (index === halfCountCeil && halfCountFloor === halfCountCeil) {
+            return [deformationTypes.RIGHT, deformationTypes.LEFT]
+        }
+
+        if (index === halfCountFloor) {
+            return [deformationTypes.RIGHT, deformationTypes.CENTER]
+        }
+
+        if (index === halfCountCeil) {
+            return [deformationTypes.CENTER, deformationTypes.LEFT]
+        }
+
+        if (index < halfCountFloor) {
+            return [deformationTypes.RIGHT, deformationTypes.RIGHT]
+        }
+
+        if (index > halfCountCeil) {
+            return [deformationTypes.LEFT, deformationTypes.LEFT]
+        }
+    })
 }
 
 export const calculatePath = (pathData) => {
@@ -107,6 +133,7 @@ export const calculatePath = (pathData) => {
 }
 
 export const getBaseConfig = (config, resistorWidth) => {
+    const deformationConfig = getDeformationConfig(config.length);
     const width = calculateRectangleWidth(resistorWidth, config.length);
     const halfWidth = width / 2;
     const {
@@ -116,20 +143,19 @@ export const getBaseConfig = (config, resistorWidth) => {
 
     // TODO get center on every item for smooth scroll
     return config.map((band, index) => {
+        const [deformationLeft, deformationRight] = deformationConfig[index]
         const x = calculateRectangleXCoords(width, index);
         let y = selectionRectangleTop;
 
         return band.map((rectangle) => {
             const distanceToSelectionRectangleTop = Math.abs(selectionRectangleTop - y);
             const shrinkHeightValue = distanceToSelectionRectangleTop * sizes.HEIGHT_SHRINK_COEFFICIENT;
-            const deformationTopValue = Math.pow(distanceToSelectionRectangleTop * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
+            const deformationTopValue = Math.pow(distanceToSelectionRectangleTop * sizes.DEFORMARION_COEFFICIENT, 2);
             const deformationTop = deformationTopValue >= halfWidth ? halfWidth : deformationTopValue;
             const height = shrinkHeightValue >= sizes.RECTANGLE_HEIGHT ? 0 : sizes.RECTANGLE_HEIGHT - shrinkHeightValue;
             const distanceToSelectionRectangleBottom = Math.abs(selectionRectangleBottom - (y + height));
-            const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
+            const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.DEFORMARION_COEFFICIENT, 2);
             const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue;
-            const deformationLeft = deformationTypes.RIGHT;
-            const deformationRight = deformationTypes.RIGHT;
             const id = uniqid();
             const pathData = {
                 x,
@@ -170,18 +196,16 @@ export const updateConfig = (props) => {
         let secondBandY = offset;
 
         const updatedFirstBand = firstBand.reverse().map((rectangle) => {
-            const {x, width} = rectangle.pathData;
+            const {x, width, deformationLeft, deformationRight} = rectangle.pathData;
             const halfWidth = width / 2;
             const distanceToSelectionRectangleTop = Math.abs(selectionRectangleTop + sizes.RECTANGLE_HEIGHT - firstBandY);
             const shrinkHeightValue = distanceToSelectionRectangleTop * sizes.HEIGHT_SHRINK_COEFFICIENT;
-            const deformationTopValue = Math.pow(distanceToSelectionRectangleTop * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
+            const deformationTopValue = Math.pow(distanceToSelectionRectangleTop * sizes.DEFORMARION_COEFFICIENT, 2);
             const deformationTop = deformationTopValue >= halfWidth ? halfWidth : deformationTopValue;
             const height = shrinkHeightValue >= sizes.RECTANGLE_HEIGHT ? 0 : sizes.RECTANGLE_HEIGHT - shrinkHeightValue;
             const distanceToSelectionRectangleBottom = Math.abs((selectionRectangleBottom + sizes.RECTANGLE_HEIGHT) - (firstBandY + height));
-            const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
+            const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.DEFORMARION_COEFFICIENT, 2);
             const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue;
-            const deformationLeft = deformationTypes.LEFT;
-            const deformationRight = deformationTypes.LEFT;
 
             firstBandY -= (height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
 
@@ -203,18 +227,16 @@ export const updateConfig = (props) => {
         })
 
         const updatedSecondBand = secondBand.map((rectangle) => {
-            const {x, width} = rectangle.pathData;
+            const {x, width, deformationLeft, deformationRight} = rectangle.pathData;
             const halfWidth = width / 2;
             const distanceToSelectionRectangleTop = Math.abs(selectionRectangleTop - secondBandY);
             const shrinkHeightValue = distanceToSelectionRectangleTop * sizes.HEIGHT_SHRINK_COEFFICIENT;
-            const deformationTopValue = Math.pow(distanceToSelectionRectangleTop * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
+            const deformationTopValue = Math.pow(distanceToSelectionRectangleTop * sizes.DEFORMARION_COEFFICIENT, 2);
             const deformationTop = deformationTopValue >= halfWidth ? halfWidth : deformationTopValue;
             const height = shrinkHeightValue >= sizes.RECTANGLE_HEIGHT ? 0 : sizes.RECTANGLE_HEIGHT - shrinkHeightValue;
             const distanceToSelectionRectangleBottom = Math.abs(selectionRectangleBottom - (secondBandY + height));
-            const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.WIDTH_SHRINK_COEFFICIENT, 2);
+            const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.DEFORMARION_COEFFICIENT, 2);
             const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue
-            const deformationRight = deformationTypes.LEFT;
-            const deformationLeft = deformationTypes.LEFT;
 
             const pathData = {
                 x,
