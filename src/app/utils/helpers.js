@@ -37,14 +37,14 @@ export const divideArr = (arr) => {
     return [firstPart, secondPart, middleIndex];
 }
 
-export const calculateRectangleWidth = (resistorSize, count) => {
-    const spacesSize = (count - 1) * sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS;
+export const calculateRectangleWidth = (resistorWidth, count) => {
+    const fullSpaceWidth = (count - 1) * sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS;
 
-    return (resistorSize - spacesSize) / count;
+    return (resistorWidth - fullSpaceWidth) / count;
 }
 
-export const calculateRectangleXCoords = (squareSize, index) => {
-    return (squareSize + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS) * index;
+export const calculateRectangleXCoords = (rectangleWidth, index) => {
+    return (rectangleWidth + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS) * index;
 }
 
 export const calculateSelectionRectangleYCoords = () => {
