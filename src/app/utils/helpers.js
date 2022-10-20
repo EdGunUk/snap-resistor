@@ -1,4 +1,5 @@
 import * as sizes from "../consts/sizes";
+import * as opacity from "../consts/opacity";
 import * as deformationTypes from "../consts/deformationTypes";
 import uniqid from 'uniqid';
 
@@ -13,21 +14,11 @@ const convertHexToRGBA = (hexCode, opacity = 1) => {
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
 
-    if (opacity > 1 && opacity <= 100) {
-        opacity = opacity / 100;
-    }
-
     return `rgba(${r},${g},${b},${opacity})`;
 };
 
-export const checkIsFullWidth = (width) => {
-    return width <= sizes.RESISTOR_WIDTH;
-}
-
 export const calculateResistorWidth = (windowWidth) => {
-    const isFullWidth = checkIsFullWidth(windowWidth);
-
-    return isFullWidth ? windowWidth : sizes.RESISTOR_WIDTH;
+    return windowWidth <= sizes.RESISTOR_WIDTH ? windowWidth : sizes.RESISTOR_WIDTH;
 }
 
 export const calculateResistorValue = (props) => {
@@ -65,6 +56,15 @@ export const calculateSelectionRectangleYCoords = () => {
         center: resistorYCenter,
         bottom: resistorYCenter + rectangleYCenter
     }
+}
+
+export const calculateOpacity = (pathData) => {
+    const {y, height} = pathData;
+    const {center: selectionRectangleCenter} = calculateSelectionRectangleYCoords();
+    const distanceToSelectionRectangleCenter = Math.abs(selectionRectangleCenter - (y + height / 2));
+    const opacityValue = distanceToSelectionRectangleCenter * opacity.OPACITY_COEFFICIENT;
+
+    return opacityValue >= opacity.MAX_OPACITY_VALUE ? opacity.MIN_OPACITY_VALUE : opacity.MAX_OPACITY_VALUE - opacityValue
 }
 
 export const getDeformationConfig = (count) => {
@@ -156,7 +156,6 @@ export const getBaseConfig = (config, resistorWidth) => {
     const halfWidth = width / 2;
     const {
         top: selectionRectangleTop,
-        center: selectionRectangleCenter,
         bottom: selectionRectangleBottom
     } = calculateSelectionRectangleYCoords();
 
@@ -176,11 +175,7 @@ export const getBaseConfig = (config, resistorWidth) => {
             const distanceToSelectionRectangleBottom = Math.abs(selectionRectangleBottom - (y + height));
             const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.DEFORMATION_COEFFICIENT, 2);
             const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue;
-            const distanceToSelectionRectangleCenter = Math.abs(selectionRectangleCenter - (y + height / 2));
-            const opacityValue = distanceToSelectionRectangleCenter * sizes.OPACITY_COEFFICIENT;
-            const opacity = opacityValue > 1 ? 0 : 1 - opacityValue
-            const fill = convertHexToRGBA(color, opacity)
-            const id = uniqid();
+
             const pathData = {
                 x,
                 y,
@@ -193,6 +188,10 @@ export const getBaseConfig = (config, resistorWidth) => {
             };
 
             y += height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
+
+            const opacity = calculateOpacity(pathData)
+            const fill = convertHexToRGBA(color, opacity)
+            const id = uniqid();
 
             return {
                 ...rectangle,
@@ -212,7 +211,6 @@ export const updateConfig = (props) => {
         const configClone = [...config];
         const {
             top: selectionRectangleTop,
-            center: selectionRectangleCenter,
             bottom: selectionRectangleBottom
         } = calculateSelectionRectangleYCoords();
         const baseBand = baseConfig[bandId];
@@ -222,8 +220,7 @@ export const updateConfig = (props) => {
         let secondBandY = offset;
 
         const updatedFirstBand = firstBand.reverse().map((rectangle, index) => {
-            const {color} = rectangle;
-            const {x, width, deformationLeft, deformationRight} = rectangle.pathData;
+            const {color, pathData: {x, width, deformationLeft, deformationRight}} = rectangle;
             const halfWidth = width / 2;
             const distanceToSelectionRectangleTop = Math.abs(selectionRectangleTop + sizes.RECTANGLE_HEIGHT - firstBandY);
             const shrinkHeightValue = distanceToSelectionRectangleTop * sizes.HEIGHT_SHRINK_COEFFICIENT;
@@ -233,10 +230,6 @@ export const updateConfig = (props) => {
             const distanceToSelectionRectangleBottom = Math.abs((selectionRectangleBottom + sizes.RECTANGLE_HEIGHT) - (firstBandY + height));
             const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.DEFORMATION_COEFFICIENT, 2);
             const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue;
-            const distanceToSelectionRectangleCenter = Math.abs((selectionRectangleCenter + sizes.RECTANGLE_HEIGHT) - (firstBandY + height / 2));
-            const opacityValue = distanceToSelectionRectangleCenter * sizes.OPACITY_COEFFICIENT;
-            const opacity = opacityValue > 1 ? 0 : 1 - opacityValue
-            const fill = convertHexToRGBA(color, opacity);
 
             firstBandY -= (height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
 
@@ -251,6 +244,9 @@ export const updateConfig = (props) => {
                 deformationRight
             };
 
+            const opacity = calculateOpacity(pathData);
+            const fill = convertHexToRGBA(color, opacity);
+
             return {
                 ...rectangle,
                 pathData,
@@ -259,8 +255,7 @@ export const updateConfig = (props) => {
         })
 
         const updatedSecondBand = secondBand.map((rectangle, index) => {
-            const {color} = rectangle;
-            const {x, width, deformationLeft, deformationRight} = rectangle.pathData;
+            const {color, pathData: {x, width, deformationLeft, deformationRight}} = rectangle;
             const halfWidth = width / 2;
             const distanceToSelectionRectangleTop = Math.abs(selectionRectangleTop - secondBandY);
             const shrinkHeightValue = distanceToSelectionRectangleTop * sizes.HEIGHT_SHRINK_COEFFICIENT;
@@ -269,11 +264,7 @@ export const updateConfig = (props) => {
             const height = shrinkHeightValue >= sizes.RECTANGLE_HEIGHT ? 0 : sizes.RECTANGLE_HEIGHT - shrinkHeightValue;
             const distanceToSelectionRectangleBottom = Math.abs(selectionRectangleBottom - (secondBandY + height));
             const deformationBottomValue = Math.pow(distanceToSelectionRectangleBottom * sizes.DEFORMATION_COEFFICIENT, 2);
-            const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue
-            const distanceToSelectionRectangleCenter = Math.abs(selectionRectangleCenter - (secondBandY + height / 2));
-            const opacityValue = distanceToSelectionRectangleCenter * sizes.OPACITY_COEFFICIENT;
-            const opacity = opacityValue > 1 ? 0 : 1 - opacityValue
-            const fill = convertHexToRGBA(color, opacity)
+            const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue;
 
             const pathData = {
                 x,
@@ -287,6 +278,9 @@ export const updateConfig = (props) => {
             };
 
             secondBandY += height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
+
+            const opacity = calculateOpacity(pathData);
+            const fill = convertHexToRGBA(color, opacity)
 
             return {
                 ...rectangle,
