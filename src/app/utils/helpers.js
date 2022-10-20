@@ -289,9 +289,9 @@ export const updateConfig = (props) => {
             }
         })
 
-        configClone[bandId] = [...updatedFirstBand, ...updatedSecondBand]
+        configClone[bandId] = [...updatedFirstBand, ...updatedSecondBand];
 
-        return configClone
+        return configClone;
     }
 
     return config.map((band, index) => {
@@ -299,24 +299,10 @@ export const updateConfig = (props) => {
 
         return band.map((rectangle, index) => {
             const {x, width} = baseBand[index].pathData;
-            const {
-                y,
-                height,
-                deformationTop,
-                deformationBottom,
-                deformationLeft,
-                deformationRight
-            } = rectangle.pathData;
-
             const pathData = {
-                x,
-                y,
+                ...rectangle.pathData,
                 width,
-                height,
-                deformationTop,
-                deformationBottom,
-                deformationLeft,
-                deformationRight
+                x,
             };
 
             return {
