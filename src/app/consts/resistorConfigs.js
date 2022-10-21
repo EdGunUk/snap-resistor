@@ -11,6 +11,10 @@ const BASE = [
         value: 1
     },
     {
+        color: colors.BLACK,
+        value: 0
+    },
+    {
         color: colors.RED,
         value: 2
     },

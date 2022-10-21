@@ -29,21 +29,23 @@ export const calculateResistorValue = (props) => {
     return totalBandValue * multiplierValue;
 }
 
-export const divideArr = (arr) => {
-    const middleIndex = Math.ceil(arr.length / 2);
-    const firstPart = [...arr].splice(0, middleIndex);
-    const secondPart = [...arr].splice(-middleIndex);
+export const divideBand = (arr) => {
+    const halfLength = arr.length / 2;
+    const middleIndexFirstBand = Math.floor(halfLength);
+    const middleIndexSecondBand = Math.ceil(halfLength);
+    const firstBand = [...arr].splice(0, middleIndexFirstBand);
+    const secondBand = [...arr].splice(-middleIndexSecondBand);
 
-    return [firstPart, secondPart, middleIndex];
+    return [firstBand, secondBand];
 }
 
-export const calculateRectangleWidth = (resistorWidth, count) => {
+export const calculateRectangleWidth = (count, resistorWidth) => {
     const fullSpaceWidth = (count - 1) * sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS;
 
     return (resistorWidth - fullSpaceWidth) / count;
 }
 
-export const calculateRectangleXCoords = (rectangleWidth, index) => {
+export const calculateRectangleXCoords = (index, rectangleWidth) => {
     return (rectangleWidth + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_X_AXIOS) * index;
 }
 
@@ -173,13 +175,13 @@ export const calculatePathData = (partialPathData, selectionRectangleYCoords) =>
 
 export const getBaseConfig = (config, resistorWidth) => {
     const deformationConfig = getDeformationConfig(config.length);
-    const width = calculateRectangleWidth(resistorWidth, config.length);
+    const width = calculateRectangleWidth(config.length, resistorWidth);
     const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
     const {top: selectionRectangleTop} = selectionRectangleYCoords;
 
     return config.map((band, index) => {
         const [deformationLeft, deformationRight] = deformationConfig[index]
-        const x = calculateRectangleXCoords(width, index);
+        const x = calculateRectangleXCoords(index, width);
         let y = selectionRectangleTop;
 
         return band.map((rectangle) => {
@@ -213,17 +215,20 @@ export const updateConfig = (props) => {
 
     if (isNeedUpdateCurrentBand) {
         const configClone = [...config];
-        const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
         const baseBand = baseConfig[bandId];
-        const [firstBand, secondBand, middleIndex] = divideArr(baseBand);
-        const offset = baseBand[middleIndex].pathData.y + translateY;
+        const [firstBand, secondBand] = divideBand(baseBand);
+        const lastItemFromFirstBand = firstBand[firstBand.length - 1];
+        const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
         const {
             top: selectionRectangleTop,
             center: selectionRectangleCenter,
             bottom: selectionRectangleBottom,
-        } = selectionRectangleYCoords
-        let firstBandY = offset;
-        let secondBandY = offset;
+        } = selectionRectangleYCoords;
+
+        let firstBandY = lastItemFromFirstBand.pathData.y + lastItemFromFirstBand.pathData.height + translateY;
+        let secondBandY = secondBand[0].pathData.y + translateY;
+
+        console.log(firstBandY, secondBandY);
 
         const updatedFirstBand = firstBand.reverse().map((rectangle, index) => {
             const {color, pathData: prevPathData} = rectangle;
