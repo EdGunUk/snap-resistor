@@ -152,21 +152,53 @@ export const calculatePath = (pathData) => {
     return `M${XP0} ${YP0} L${XP1} ${YP1} ${XP2} ${YP2} ${XP3} ${YP3} Z`;
 }
 
-export const calculatePathData = (partialPathData, selectionRectangleYCoords) => {
-    const {y, width} = partialPathData;
-    const {top: selectionRectangleTop, bottom: selectionRectangleBottom} = selectionRectangleYCoords;
+export const calculateRectangleHeight = (distanceToSelectionRectangleYCoord) => {
+    const shrinkHeightValue = distanceToSelectionRectangleYCoord * sizes.HEIGHT_SHRINK_COEFFICIENT;
+
+    return shrinkHeightValue >= sizes.RECTANGLE_HEIGHT ? 0 : sizes.RECTANGLE_HEIGHT - shrinkHeightValue;
+}
+
+export const calculateRectangleDeformation = (distanceToSelectionRectangleYCoord, halfWidth) => {
+    const deformation = Math.pow((distanceToSelectionRectangleYCoord) * sizes.DEFORMATION_COEFFICIENT, 2);
+
+    return deformation >= halfWidth ? halfWidth : deformation;
+}
+
+export const calculatedDistanceToSelectionRectangleYCoord = (selectionRectangleYCoord, y) => {
+    return Math.abs(selectionRectangleYCoord - y);
+}
+
+export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse) => {
+    const {y, width} = pathData;
     const halfWidth = width / 2;
-    const distanceToSelectionRectangleTop = Math.abs(selectionRectangleTop - y);
-    const shrinkHeightValue = distanceToSelectionRectangleTop * sizes.HEIGHT_SHRINK_COEFFICIENT;
-    const deformationTopValue = Math.pow(distanceToSelectionRectangleTop * sizes.DEFORMATION_COEFFICIENT, 2);
-    const deformationTop = deformationTopValue >= halfWidth ? halfWidth : deformationTopValue;
-    const height = shrinkHeightValue >= sizes.RECTANGLE_HEIGHT ? 0 : sizes.RECTANGLE_HEIGHT - shrinkHeightValue;
-    const distanceToSelectionRectangleBottom = Math.abs(selectionRectangleBottom - (y + height));
-    const deformationBottomValue = Math.pow((distanceToSelectionRectangleBottom) * sizes.DEFORMATION_COEFFICIENT, 2);
-    const deformationBottom = deformationBottomValue >= halfWidth ? halfWidth : deformationBottomValue;
+    const {top: selectionRectangleTop, bottom: selectionRectangleBottom} = selectionRectangleYCoords;
+
+    if (isReverse) {
+        const distanceToSelectionRectangleBottom = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleBottom, y);
+        const height = calculateRectangleHeight(distanceToSelectionRectangleBottom);
+        const newY = y - height;
+        const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, newY);
+        const deformationBottom = calculateRectangleDeformation(distanceToSelectionRectangleBottom, halfWidth);
+        const deformationTop = calculateRectangleDeformation(distanceToSelectionRectangleTop, halfWidth);
+
+        return {
+            ...pathData,
+            deformationBottom,
+            deformationTop,
+            y: newY,
+            height,
+        }
+    }
+
+    const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
+    const height = calculateRectangleHeight(distanceToSelectionRectangleTop);
+    const newY = y + height;
+    const distanceToSelectionRectangleBottom = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleBottom, newY);
+    const deformationBottom = calculateRectangleDeformation(distanceToSelectionRectangleBottom, halfWidth);
+    const deformationTop = calculateRectangleDeformation(distanceToSelectionRectangleTop, halfWidth);
 
     return {
-        ...partialPathData,
+        ...pathData,
         deformationBottom,
         deformationTop,
         height,
@@ -217,40 +249,22 @@ export const updateConfig = (props) => {
         const configClone = [...config];
         const baseBand = baseConfig[bandId];
         const [firstBand, secondBand] = divideBand(baseBand);
-        const lastItemFromFirstBand = firstBand[firstBand.length - 1];
+        const {pathData: firstBandPathData} = firstBand[firstBand.length - 1];
         const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
-        const {
-            top: selectionRectangleTop,
-            center: selectionRectangleCenter,
-            bottom: selectionRectangleBottom,
-        } = selectionRectangleYCoords;
-
-        let firstBandY = lastItemFromFirstBand.pathData.y + lastItemFromFirstBand.pathData.height + translateY;
+        let firstBandY = firstBandPathData.y + firstBandPathData.height + translateY;
         let secondBandY = secondBand[0].pathData.y + translateY;
-
-        console.log(firstBandY, secondBandY);
 
         const updatedFirstBand = firstBand.reverse().map((rectangle, index) => {
             const {color, pathData: prevPathData} = rectangle;
-            const pathData = calculatePathData({...prevPathData, y: firstBandY}, {
-                top: selectionRectangleTop + sizes.RECTANGLE_HEIGHT,
-                center: selectionRectangleCenter + sizes.RECTANGLE_HEIGHT,
-                bottom: selectionRectangleBottom + sizes.RECTANGLE_HEIGHT,
-            });
+            const pathData = calculatePathData({...prevPathData, y: firstBandY}, selectionRectangleYCoords, true);
+            const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
+            const fill = convertHexToRGBA(color, opacity);
 
             firstBandY -= (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
 
-            const newPathData = {
-                ...pathData,
-                y: firstBandY,
-            }
-
-            const opacity = calculateOpacity(newPathData, selectionRectangleYCoords);
-            const fill = convertHexToRGBA(color, opacity);
-
             return {
                 ...rectangle,
-                pathData: newPathData,
+                pathData,
                 fill,
             }
         })
