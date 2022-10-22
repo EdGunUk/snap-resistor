@@ -241,6 +241,33 @@ export const getBaseConfig = (config, resistorWidth) => {
     })
 }
 
+export const updateBand = (bandPart, translateY, isReverse) => {
+    const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
+    let y = bandPart[0].pathData.y + translateY;
+    let multiplier = 1;
+
+    if (isReverse) {
+        bandPart.reverse();
+        y = bandPart[0].pathData.y + bandPart[0].pathData.height + translateY;
+        multiplier = -1;
+    }
+
+    return bandPart.map((rectangle) => {
+        const {color, pathData: prevPathData} = rectangle;
+        const pathData = calculatePathData({...prevPathData, y}, selectionRectangleYCoords, isReverse);
+        const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
+        const fill = convertHexToRGBA(color, opacity);
+
+        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS) * multiplier;
+
+        return {
+            ...rectangle,
+            pathData,
+            fill,
+        }
+    })
+}
+
 export const updateConfig = (props) => {
     const {baseConfig, config, bandId, translateY} = props;
     const isNeedUpdateCurrentBand = 'bandId' in props && 'translateY' in props;
@@ -249,40 +276,8 @@ export const updateConfig = (props) => {
         const configClone = [...config];
         const baseBand = baseConfig[bandId];
         const [firstBand, secondBand] = divideBand(baseBand);
-        const {pathData: firstBandPathData} = firstBand[firstBand.length - 1];
-        const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
-        let firstBandY = firstBandPathData.y + firstBandPathData.height + translateY;
-        let secondBandY = secondBand[0].pathData.y + translateY;
-
-        const updatedFirstBand = firstBand.reverse().map((rectangle, index) => {
-            const {color, pathData: prevPathData} = rectangle;
-            const pathData = calculatePathData({...prevPathData, y: firstBandY}, selectionRectangleYCoords, true);
-            const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
-            const fill = convertHexToRGBA(color, opacity);
-
-            firstBandY -= (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
-
-            return {
-                ...rectangle,
-                pathData,
-                fill,
-            }
-        })
-
-        const updatedSecondBand = secondBand.map((rectangle, index) => {
-            const {color, pathData: prevPathData} = rectangle;
-            const pathData = calculatePathData({...prevPathData, y: secondBandY}, selectionRectangleYCoords);
-            const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
-            const fill = convertHexToRGBA(color, opacity)
-
-            secondBandY += pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
-
-            return {
-                ...rectangle,
-                pathData,
-                fill,
-            }
-        })
+        const updatedFirstBand = updateBand(firstBand, translateY, true);
+        const updatedSecondBand = updateBand(secondBand, translateY);
 
         configClone[bandId] = [...updatedFirstBand, ...updatedSecondBand];
 
