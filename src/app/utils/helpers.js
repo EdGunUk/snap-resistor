@@ -29,12 +29,12 @@ export const calculateResistorValue = (props) => {
     return totalBandValue * multiplierValue;
 }
 
-export const divideBand = (arr) => {
-    const halfLength = arr.length / 2;
+export const divideBand = (band) => {
+    const halfLength = band.length / 2;
     const middleIndexFirstBand = Math.floor(halfLength);
     const middleIndexSecondBand = Math.ceil(halfLength);
-    const firstBand = [...arr].splice(0, middleIndexFirstBand);
-    const secondBand = [...arr].splice(-middleIndexSecondBand);
+    const firstBand = band.slice(0, middleIndexFirstBand);
+    const secondBand = band.slice(-middleIndexSecondBand);
 
     return [firstBand, secondBand];
 }
@@ -242,6 +242,11 @@ export const getBaseConfig = (config, resistorWidth) => {
 }
 
 export const updateBand = (bandPart, translateY, isReverse) => {
+
+    if (bandPart.length === 0) {
+        return bandPart;
+    }
+
     const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
     let y = bandPart[0].pathData.y + translateY;
     let multiplier = 1;
@@ -268,6 +273,24 @@ export const updateBand = (bandPart, translateY, isReverse) => {
     })
 }
 
+export const getClosestRectangleIndex = (baseBand, currentBand) => {
+    const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
+    let closestDistance = null;
+    let closestColor = null;
+
+    currentBand.forEach((rectangle) => {
+        const {color, pathData: {y}} = rectangle;
+        const currentDistance = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
+
+        if (closestDistance !== null && closestDistance <= currentDistance) return;
+
+        closestDistance = currentDistance;
+        closestColor = color;
+    })
+
+    return baseBand.findIndex((rectangle) => rectangle.color === closestColor);
+}
+
 export const updateConfig = (props) => {
     const {baseConfig, config, bandId, translateY} = props;
     const isNeedUpdateCurrentBand = 'bandId' in props && 'translateY' in props;
@@ -275,6 +298,8 @@ export const updateConfig = (props) => {
     if (isNeedUpdateCurrentBand) {
         const configClone = [...config];
         const baseBand = baseConfig[bandId];
+        const currentBand = configClone[bandId];
+        const index = getClosestRectangleIndex(baseBand, currentBand);
         const [firstBand, secondBand] = divideBand(baseBand);
         const updatedFirstBand = updateBand(firstBand, translateY, true);
         const updatedSecondBand = updateBand(secondBand, translateY);
