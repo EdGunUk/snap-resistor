@@ -276,7 +276,7 @@ export const updateBand = (bandPart, translateY, isReverse) => {
 export const getClosestRectangleIndex = (baseBand, currentBand) => {
     const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
     let closestDistance = null;
-    let closestColor = null;
+    let closestColor = null; //TODO change to index
 
     currentBand.forEach((rectangle) => {
         const {color, pathData: {y}} = rectangle;
