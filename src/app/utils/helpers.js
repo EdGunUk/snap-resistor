@@ -242,22 +242,22 @@ export const getBaseConfig = (config, resistorWidth) => {
 }
 
 export const updateBand = (bandPart, translateY, isReverse) => {
+    if (bandPart.length === 0) return bandPart;
 
-    if (bandPart.length === 0) {
-        return bandPart;
-    }
-
+    const bandPartClone = [...bandPart]
     const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
-    let y = bandPart[0].pathData.y + translateY;
+    let y = bandPartClone[0].pathData.y + translateY;
     let multiplier = 1;
 
     if (isReverse) {
-        bandPart.reverse(); //TODO refactor this
-        y = bandPart[0].pathData.y + bandPart[0].pathData.height + translateY;
+        const pathData = bandPartClone[bandPartClone.length - 1].pathData
+
+        y = pathData.y + pathData.height + translateY;
+        bandPartClone.reverse();
         multiplier = -1;
     }
 
-    return bandPart.map((rectangle) => {
+    return bandPartClone.map((rectangle) => {
         const {color, pathData: prevPathData} = rectangle;
         const pathData = calculatePathData({...prevPathData, y}, selectionRectangleYCoords, isReverse);
         const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
@@ -276,19 +276,19 @@ export const updateBand = (bandPart, translateY, isReverse) => {
 export const getClosestRectangleIndex = (baseBand, currentBand) => {
     const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
     let closestDistance = null;
-    let closestColor = null; //TODO change to index
+    let closestId = null;
 
     currentBand.forEach((rectangle) => {
-        const {color, pathData: {y}} = rectangle;
+        const {id, pathData: {y}} = rectangle;
         const currentDistance = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
 
         if (closestDistance !== null && closestDistance <= currentDistance) return;
 
         closestDistance = currentDistance;
-        closestColor = color;
+        closestId = id;
     })
 
-    return baseBand.findIndex((rectangle) => rectangle.color === closestColor);
+    return baseBand.findIndex((rectangle) => rectangle.id === closestId);
 }
 
 export const updateConfig = (props) => {
