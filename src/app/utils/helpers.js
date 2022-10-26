@@ -252,7 +252,7 @@ export const updateBand = (bandPart, translateY, isReverse) => {
     let multiplier = 1;
 
     if (isReverse) {
-        bandPart.reverse();
+        bandPart.reverse(); //TODO refactor this
         y = bandPart[0].pathData.y + bandPart[0].pathData.height + translateY;
         multiplier = -1;
     }
