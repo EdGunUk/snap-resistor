@@ -168,16 +168,26 @@ export const calculatedDistanceToSelectionRectangleYCoord = (selectionRectangleY
     return Math.abs(selectionRectangleYCoord - y);
 }
 
-export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse) => {
+export const calculatePathData = (pathData, selectionRectangleYCoords) => {
     const {y, width} = pathData;
     const halfWidth = width / 2;
-    const {top: selectionRectangleTop, bottom: selectionRectangleBottom} = selectionRectangleYCoords;
+    const {
+        top: selectionRectangleTop,
+        center: selectionRectangleCenter,
+        bottom: selectionRectangleBottom
+    } = selectionRectangleYCoords;
+    const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
+    const height = calculateRectangleHeight(distanceToSelectionRectangleTop);
+    const newY = y + height;
+    const isReverse = newY < selectionRectangleCenter;
+    const distanceToSelectionRectangleBottom = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleBottom, newY);
 
     if (isReverse) {
-        const distanceToSelectionRectangleBottom = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleBottom, y);
-        const height = calculateRectangleHeight(distanceToSelectionRectangleBottom);
-        const newY = y - height;
-        const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, newY);
+        const reverseHeight = calculateRectangleHeight(distanceToSelectionRectangleBottom);
+        const reverseY = newY - reverseHeight;
+        const newReverseY = reverseY - (reverseY - y);
+        const newReverseHeight = reverseHeight - (reverseY - y);
+        const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, newReverseY);
         const deformationBottom = calculateRectangleDeformation(distanceToSelectionRectangleBottom, halfWidth);
         const deformationTop = calculateRectangleDeformation(distanceToSelectionRectangleTop, halfWidth);
 
@@ -185,15 +195,11 @@ export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse
             ...pathData,
             deformationBottom,
             deformationTop,
-            y: newY,
-            height,
+            height: reverseHeight,
+            y: newReverseY
         }
     }
 
-    const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
-    const height = calculateRectangleHeight(distanceToSelectionRectangleTop);
-    const newY = y + height;
-    const distanceToSelectionRectangleBottom = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleBottom, newY);
     const deformationBottom = calculateRectangleDeformation(distanceToSelectionRectangleBottom, halfWidth);
     const deformationTop = calculateRectangleDeformation(distanceToSelectionRectangleTop, halfWidth);
 
@@ -205,28 +211,21 @@ export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse
     }
 }
 
-export const getBaseBand = (bandPart, initialPathData, isReverse) => {
+export const getBaseBand = (bandPart, initialPathData) => {
     if (bandPart.length === 0) return bandPart;
 
-    const bandPartClone = [...bandPart]
     const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
-    let y = 259.3;
-    let multiplier = 1;
+    const {top: selectionRectangleTop} = selectionRectangleYCoords;
+    let y = selectionRectangleTop;
 
-    if (isReverse) {
-        y = 259.3 - sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
-        bandPartClone.reverse();
-        multiplier = -1;
-    }
-
-    return bandPartClone.map((rectangle) => {
+    return bandPart.map((rectangle) => {
         const {color} = rectangle;
-        const pathData = calculatePathData({...initialPathData, y}, selectionRectangleYCoords, isReverse);
+        const pathData = calculatePathData({...initialPathData, y}, selectionRectangleYCoords);
         const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
         const fill = convertHexToRGBA(color, opacity);
         const id = uniqid();
 
-        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS) * multiplier;
+        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
 
         return {
             ...rectangle,
@@ -251,33 +250,23 @@ export const getBaseConfig = (config, resistorWidth) => {
             deformationRight
         };
 
-        const [firstBand, secondBand] = divideBand(band);
-        const updatedFirstBand = getBaseBand(firstBand, initialPathData, true);
-        const updatedSecondBand = getBaseBand(secondBand, initialPathData);
-
-        return [...updatedFirstBand, ...updatedSecondBand];
+        return getBaseBand(band, initialPathData);
     })
 }
 
-export const updateBand = (bandPart, translateY, isReverse) => {
+export const updateBand = (bandPart, translateY) => {
     if (bandPart.length === 0) return bandPart;
 
     const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
     let y = bandPart[0].pathData.y + translateY;
-    let multiplier = 1;
-
-    if (isReverse) {
-        y = bandPart[0].pathData.y + bandPart[0].pathData.height + translateY;
-        multiplier = -1;
-    }
 
     return bandPart.map((rectangle) => {
         const {color, pathData: prevPathData} = rectangle;
-        const pathData = calculatePathData({...prevPathData, y}, selectionRectangleYCoords, isReverse);
+        const pathData = calculatePathData({...prevPathData, y}, selectionRectangleYCoords);
         const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
         const fill = convertHexToRGBA(color, opacity);
 
-        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS) * multiplier;
+        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
 
         return {
             ...rectangle,
@@ -305,6 +294,46 @@ export const getClosestRectangleIndex = (baseBand, currentBand) => {
     return baseBand.findIndex((rectangle) => rectangle.id === closestId);
 }
 
+export const normalizeBandScroll = (baseBand, currentBand) => {
+    // const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
+    // let height = 0;
+
+    return baseBand[0].pathData.height - currentBand[0].pathData.height;
+
+    // currentBand.forEach((rectangle, index) => {
+    //     const {pathData: {y: currentY, height: currentHeight}} = rectangle;
+    //     const baseHeight = baseBand[index].pathData.height;
+    //
+    //
+    //     // if (currentY < selectionRectangleYCoords.top) {
+    //     //     if (baseHeight > currentHeight) {
+    //             height += (baseHeight - currentHeight)
+    //         }
+    //     // }
+    // })
+
+
+    // let y = currentBand[0].pathData.y + height;
+    //
+    // return currentBand.map((rectangle) => {
+    //     const {pathData: prevPathData} = rectangle;
+    //
+    //     const pathData = {
+    //         ...prevPathData,
+    //         y
+    //     }
+    //
+    //     y += prevPathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
+    //
+    //     return {
+    //         ...rectangle,
+    //         pathData,
+    //     }
+    // })
+
+
+}
+
 export const updateConfig = (props) => {
     const {baseConfig, config, bandId, translateY} = props;
     const isNeedUpdateCurrentBand = 'bandId' in props && 'translateY' in props;
@@ -312,13 +341,11 @@ export const updateConfig = (props) => {
     if (isNeedUpdateCurrentBand) {
         const configClone = [...config];
         const baseBand = baseConfig[bandId];
-        const currentBand = configClone[bandId];
-        const index = getClosestRectangleIndex(baseBand, currentBand);
-        const [firstBand, secondBand] = divideBand(baseBand);
-        const updatedFirstBand = updateBand(firstBand, translateY, true);
-        const updatedSecondBand = updateBand(secondBand, translateY);
+        // const currentBand = configClone[bandId];
+        // const index = getClosestRectangleIndex(baseBand, currentBand);
+        // const normalizedBandScroll = normalizeBandScroll(baseBand, updatedSecondBand);
 
-        configClone[bandId] = [...updatedFirstBand, ...updatedSecondBand];
+        configClone[bandId] = updateBand(baseBand, translateY);
 
         return configClone;
     }
