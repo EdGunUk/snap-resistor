@@ -68,7 +68,7 @@ const App = () => {
             onPointerUp={handlePointerUp}
         >
             <BackgroundGradient/>
-            <Resistor height={resistorHeight} width={resistorWidth}  config={config}/>
+            <Resistor height={resistorHeight} width={resistorWidth} config={config}/>
         </Main>
     );
 }
