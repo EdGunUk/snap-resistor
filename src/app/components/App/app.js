@@ -10,10 +10,11 @@ import * as sizes from "../../consts/sizes";
 
 
 const App = () => {
+    const isReverse = true;
     const windowSize = useWindowSize();
     const resistorHeight = sizes.RESISTOR_HEIGHT;
     const resistorWidth = useMemo(() => calculateResistorWidth(windowSize.width), [windowSize.width]);
-    const baseConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorWidth), [resistorWidth]);
+    const baseConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorWidth, isReverse), [resistorWidth]);
     const [cursor, setCursor] = useState(cursorTypes.AUTO);
     const [config, setConfig] = useState(baseConfig);
     const dragData = useRef({
@@ -24,7 +25,7 @@ const App = () => {
     });
 
     useEffect(() => {
-        setConfig((config) => updateConfig({baseConfig, config}));
+        setConfig((config) => updateConfig({baseConfig, config, isReverse}));
     }, [baseConfig])
 
     const handlePointerDown = (e) => {
@@ -45,7 +46,7 @@ const App = () => {
         const endTranslateY = bandsEndTranslateY[bandId] ?? 0;
         const translateY = e.clientY - startClientY + endTranslateY;
 
-        setConfig((config) => updateConfig({baseConfig, config, bandId, translateY}));
+        setConfig((config) => updateConfig({baseConfig, config, bandId, translateY, isReverse}));
         current.translateY = translateY;
     }
 

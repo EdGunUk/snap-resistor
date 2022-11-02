@@ -17,10 +17,6 @@ const convertHexToRGBA = (hexCode, opacity = 1) => {
     return `rgba(${r},${g},${b},${opacity})`;
 };
 
-export const calculateResistorWidth = (windowWidth) => {
-    return windowWidth <= sizes.RESISTOR_WIDTH ? windowWidth : sizes.RESISTOR_WIDTH;
-}
-
 export const calculateResistorValue = (props) => {
     const mappedProps = Object.fromEntries(Object.entries(props).map(([key, value]) => [key, (value === null) ? value : value.toString()]));
     const {firstBandValue, secondBandValue, thirdBandValue, multiplierValue} = mappedProps;
@@ -29,14 +25,8 @@ export const calculateResistorValue = (props) => {
     return totalBandValue * multiplierValue;
 }
 
-export const divideBand = (band) => {
-    const halfLength = band.length / 2;
-    const middleIndexFirstBand = Math.floor(halfLength);
-    const middleIndexSecondBand = Math.ceil(halfLength);
-    const firstBand = band.slice(0, middleIndexFirstBand);
-    const secondBand = band.slice(-middleIndexSecondBand);
-
-    return [firstBand, secondBand];
+export const calculateResistorWidth = (windowWidth) => {
+    return windowWidth <= sizes.RESISTOR_WIDTH ? windowWidth : sizes.RESISTOR_WIDTH;
 }
 
 export const calculateRectangleWidth = (count, resistorWidth) => {
@@ -58,15 +48,6 @@ export const calculateSelectionRectangleYCoords = () => {
         center: resistorYCenter,
         bottom: resistorYCenter + rectangleYCenter
     }
-}
-
-export const calculateOpacity = (pathData, selectionRectangleYCoords) => {
-    const {y, height} = pathData;
-    const {center: selectionRectangleCenter} = selectionRectangleYCoords;
-    const distanceToSelectionRectangleCenter = Math.abs(selectionRectangleCenter - (y + height / 2));
-    const opacityValue = distanceToSelectionRectangleCenter * opacity.OPACITY_COEFFICIENT;
-
-    return opacityValue >= opacity.MAX_OPACITY_VALUE ? opacity.MIN_OPACITY_VALUE : opacity.MAX_OPACITY_VALUE - opacityValue
 }
 
 export const getDeformationConfig = (count) => {
@@ -168,7 +149,34 @@ export const calculatedDistanceToSelectionRectangleYCoord = (selectionRectangleY
     return Math.abs(selectionRectangleYCoord - y);
 }
 
-export const calculatePathData = (pathData, selectionRectangleYCoords) => {
+export const calculateOpacity = (pathData, selectionRectangleYCoords) => {
+    const {y, height} = pathData;
+    const {center: selectionRectangleCenter} = selectionRectangleYCoords;
+    const distanceToSelectionRectangleCenter = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleCenter, y + height / 2);
+    const opacityValue = distanceToSelectionRectangleCenter * opacity.OPACITY_COEFFICIENT;
+
+    return opacityValue >= opacity.MAX_OPACITY_VALUE ? opacity.MIN_OPACITY_VALUE : opacity.MAX_OPACITY_VALUE - opacityValue
+}
+
+export const getClosestRectangleIndex = (baseBand, currentBand) => {
+    const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
+    let closestDistance = null;
+    let closestId = null;
+
+    currentBand.forEach((rectangle) => {
+        const {id, pathData: {y}} = rectangle;
+        const currentDistance = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
+
+        if (closestDistance !== null && closestDistance <= currentDistance) return;
+
+        closestDistance = currentDistance;
+        closestId = id;
+    })
+
+    return baseBand.findIndex((rectangle) => rectangle.id === closestId);
+}
+
+export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse) => {
     const {y, width} = pathData;
     const halfWidth = width / 2;
     const {
@@ -176,13 +184,31 @@ export const calculatePathData = (pathData, selectionRectangleYCoords) => {
         center: selectionRectangleCenter,
         bottom: selectionRectangleBottom
     } = selectionRectangleYCoords;
+
+    if (isReverse) {
+        const distanceToSelectionRectangleBottom = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleBottom, y);
+        const height = calculateRectangleHeight(distanceToSelectionRectangleBottom);
+        const newY = y - height;
+        const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, newY);
+        const deformationBottom = calculateRectangleDeformation(distanceToSelectionRectangleBottom, halfWidth);
+        const deformationTop = calculateRectangleDeformation(distanceToSelectionRectangleTop, halfWidth);
+
+
+        return {
+            ...pathData,
+            deformationBottom,
+            deformationTop,
+            height,
+            y: newY
+        }
+    }
+
     const distanceToSelectionRectangleTop = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
     const height = calculateRectangleHeight(distanceToSelectionRectangleTop);
     const newY = y + height;
-    const isReverse = newY < selectionRectangleCenter;
     const distanceToSelectionRectangleBottom = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleBottom, newY);
 
-    if (isReverse) {
+    if (newY < selectionRectangleCenter) {
         const reverseHeight = calculateRectangleHeight(distanceToSelectionRectangleBottom);
         const reverseY = newY - reverseHeight;
         const newReverseY = reverseY - (reverseY - y);
@@ -211,21 +237,58 @@ export const calculatePathData = (pathData, selectionRectangleYCoords) => {
     }
 }
 
-export const getBaseBand = (bandPart, initialPathData) => {
-    if (bandPart.length === 0) return bandPart;
+export const updateBand = (band, translateY, isReverse) => {
+    if (band.length === 0) return band;
 
     const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
-    const {top: selectionRectangleTop} = selectionRectangleYCoords;
-    let y = selectionRectangleTop;
+    const firstItemPathData = band[0].pathData;
+    let y = firstItemPathData.y + translateY;
+    let multiplier = 1;
 
-    return bandPart.map((rectangle) => {
+    if (isReverse) {
+        y = firstItemPathData.y + firstItemPathData.height + translateY;
+        multiplier = -1;
+    }
+
+    return band.map((rectangle) => {
+        const {color, pathData: prevPathData} = rectangle;
+        const pathData = calculatePathData({...prevPathData, y}, selectionRectangleYCoords, isReverse);
+        const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
+        const fill = convertHexToRGBA(color, opacity);
+
+        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS) * multiplier;
+
+        return {
+            ...rectangle,
+            pathData,
+            fill,
+        }
+    })
+}
+
+export const getBaseBand = (band, initialPathData, isReverse) => {
+    if (band.length === 0) return band;
+
+    const bandClone = [...band];
+    const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
+    const {top: selectionRectangleTop, bottom: selectionRectangleBottom} = selectionRectangleYCoords;
+    let y = selectionRectangleTop;
+    let multiplier = 1;
+
+    if (isReverse) {
+        y = selectionRectangleBottom;
+        bandClone.reverse();
+        multiplier = -1;
+    }
+
+    return bandClone.map((rectangle) => {
         const {color} = rectangle;
-        const pathData = calculatePathData({...initialPathData, y}, selectionRectangleYCoords);
+        const pathData = calculatePathData({...initialPathData, y}, selectionRectangleYCoords, isReverse);
         const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
         const fill = convertHexToRGBA(color, opacity);
         const id = uniqid();
 
-        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
+        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS) * multiplier;
 
         return {
             ...rectangle,
@@ -236,116 +299,15 @@ export const getBaseBand = (bandPart, initialPathData) => {
     })
 }
 
-export const getBaseConfig = (config, resistorWidth) => {
-    const deformationConfig = getDeformationConfig(config.length);
-    const width = calculateRectangleWidth(config.length, resistorWidth);
-
-    return config.map((band, index) => {
-        const x = calculateRectangleXCoords(index, width);
-        const [deformationLeft, deformationRight] = deformationConfig[index]
-        const initialPathData = {
-            x,
-            width,
-            deformationLeft,
-            deformationRight
-        };
-
-        return getBaseBand(band, initialPathData);
-    })
-}
-
-export const updateBand = (bandPart, translateY) => {
-    if (bandPart.length === 0) return bandPart;
-
-    const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
-    let y = bandPart[0].pathData.y + translateY;
-
-    return bandPart.map((rectangle) => {
-        const {color, pathData: prevPathData} = rectangle;
-        const pathData = calculatePathData({...prevPathData, y}, selectionRectangleYCoords);
-        const opacity = calculateOpacity(pathData, selectionRectangleYCoords);
-        const fill = convertHexToRGBA(color, opacity);
-
-        y += (pathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS);
-
-        return {
-            ...rectangle,
-            pathData,
-            fill,
-        }
-    })
-}
-
-export const getClosestRectangleIndex = (baseBand, currentBand) => {
-    const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
-    let closestDistance = null;
-    let closestId = null;
-
-    currentBand.forEach((rectangle) => {
-        const {id, pathData: {y}} = rectangle;
-        const currentDistance = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
-
-        if (closestDistance !== null && closestDistance <= currentDistance) return;
-
-        closestDistance = currentDistance;
-        closestId = id;
-    })
-
-    return baseBand.findIndex((rectangle) => rectangle.id === closestId);
-}
-
-export const normalizeBandScroll = (baseBand, currentBand) => {
-    // const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
-    // let height = 0;
-
-    return baseBand[0].pathData.height - currentBand[0].pathData.height;
-
-    // currentBand.forEach((rectangle, index) => {
-    //     const {pathData: {y: currentY, height: currentHeight}} = rectangle;
-    //     const baseHeight = baseBand[index].pathData.height;
-    //
-    //
-    //     // if (currentY < selectionRectangleYCoords.top) {
-    //     //     if (baseHeight > currentHeight) {
-    //             height += (baseHeight - currentHeight)
-    //         }
-    //     // }
-    // })
-
-
-    // let y = currentBand[0].pathData.y + height;
-    //
-    // return currentBand.map((rectangle) => {
-    //     const {pathData: prevPathData} = rectangle;
-    //
-    //     const pathData = {
-    //         ...prevPathData,
-    //         y
-    //     }
-    //
-    //     y += prevPathData.height + sizes.SPASE_BETWEEN_COLORED_RECTANGLE_Y_AXIOS;
-    //
-    //     return {
-    //         ...rectangle,
-    //         pathData,
-    //     }
-    // })
-
-
-}
-
 export const updateConfig = (props) => {
-    const {baseConfig, config, bandId, translateY} = props;
+    const {baseConfig, config, bandId, translateY, isReverse} = props;
     const isNeedUpdateCurrentBand = 'bandId' in props && 'translateY' in props;
 
     if (isNeedUpdateCurrentBand) {
         const configClone = [...config];
         const baseBand = baseConfig[bandId];
-        // const currentBand = configClone[bandId];
-        // const index = getClosestRectangleIndex(baseBand, currentBand);
-        // const normalizedBandScroll = normalizeBandScroll(baseBand, updatedSecondBand);
 
-        configClone[bandId] = updateBand(baseBand, translateY);
+        configClone[bandId] = updateBand(baseBand, translateY, isReverse);
 
         return configClone;
     }
@@ -366,5 +328,23 @@ export const updateConfig = (props) => {
                 pathData
             };
         })
+    })
+}
+
+export const getBaseConfig = (config, resistorWidth, isReverse) => {
+    const deformationConfig = getDeformationConfig(config.length);
+    const width = calculateRectangleWidth(config.length, resistorWidth);
+
+    return config.map((band, index) => {
+        const x = calculateRectangleXCoords(index, width);
+        const [deformationLeft, deformationRight] = deformationConfig[index]
+        const initialPathData = {
+            x,
+            width,
+            deformationLeft,
+            deformationRight
+        };
+
+        return getBaseBand(band, initialPathData, isReverse);
     })
 }
