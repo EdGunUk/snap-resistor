@@ -10,11 +10,11 @@ import * as sizes from "../../consts/sizes";
 
 
 const App = () => {
-    const isReverse = true;
     const windowSize = useWindowSize();
     const resistorHeight = sizes.RESISTOR_HEIGHT;
     const resistorWidth = useMemo(() => calculateResistorWidth(windowSize.width), [windowSize.width]);
-    const baseConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorWidth, isReverse), [resistorWidth]);
+    const baseConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorWidth), [resistorWidth]);
+    const reversedConfig = useMemo(() => getBaseConfig(resistorConfigs.FORE_BAND, resistorWidth, true), [resistorWidth]);
     const [cursor, setCursor] = useState(cursorTypes.AUTO);
     const [config, setConfig] = useState(baseConfig);
     const dragData = useRef({
@@ -25,8 +25,27 @@ const App = () => {
     });
 
     useEffect(() => {
-        setConfig((config) => updateConfig({baseConfig, config, isReverse}));
+        setConfig((config) => updateConfig({baseConfig, config}));
     }, [baseConfig])
+
+    const updateConfigInRange = (props) => {
+        const {baseConfig, bandId} = props;
+        const updatedConfig = updateConfig(props);
+        const updatedBand = updatedConfig[bandId];
+        const baseBand = baseConfig[bandId];
+        const reversedBand = reversedConfig[bandId];
+
+        if (updatedBand[updatedBand.length - 1].pathData.y < reversedBand[0].pathData.y) {
+            updatedConfig[bandId] = reversedBand;
+        }
+
+        if (updatedBand[0].pathData.y > baseBand[0].pathData.y) {
+            updatedConfig[bandId] = baseBand;
+        }
+
+        return updatedConfig;
+    }
+
 
     const handlePointerDown = (e) => {
         const band = e.target.closest('g[data-band-id]');
@@ -46,7 +65,7 @@ const App = () => {
         const endTranslateY = bandsEndTranslateY[bandId] ?? 0;
         const translateY = e.clientY - startClientY + endTranslateY;
 
-        setConfig((config) => updateConfig({baseConfig, config, bandId, translateY, isReverse}));
+        setConfig((config) => updateConfigInRange({baseConfig, config, bandId, translateY}));
         current.translateY = translateY;
     }
 
