@@ -2,7 +2,12 @@ import BackgroundGradient from "../BackgroundGradient/backgroundGradient";
 import Resistor from "../Resistor/resistor";
 import {useEffect, useMemo, useRef, useState} from "react";
 import {Main} from "../Main/styled";
-import {calculateResistorWidth, getBaseConfig, updateConfig} from "../../utils/helpers";
+import {
+    calculateResistorWidth,
+    getBaseConfig,
+    getClosestRectangleIndex,
+    updateConfig
+} from "../../utils/helpers";
 import useWindowSize from "../../hooks/useWindowSize";
 import * as resistorConfigs from "../../consts/resistorConfigs";
 import * as cursorTypes from "../../consts/cursorTypes";
@@ -37,10 +42,10 @@ const App = () => {
         const baseBand = baseConfig[bandId]
         const reversedBand = reversedConfig[bandId];
         const isReverse = bandsReverse[bandId] ?? false;
-        const bottomIndex = isReverse ? band.length - 1 : 0;
         const topIndex = isReverse ? 0 : band.length - 1;
-        const isOutOfBottomRange = band[bottomIndex].pathData.y > baseBand[0].pathData.y;
+        const bottomIndex = isReverse ? band.length - 1 : 0;
         const isOutOfTopRange = band[topIndex].pathData.y < reversedBand[0].pathData.y;
+        const isOutOfBottomRange = band[bottomIndex].pathData.y > baseBand[0].pathData.y;
 
         if (isOutOfBottomRange) {
             configClone[bandId] = baseBand;
@@ -61,6 +66,9 @@ const App = () => {
                 isReverse: true
             }
         }
+
+        const closestRectangleIndex = getClosestRectangleIndex(band);
+        console.log(closestRectangleIndex)
 
         return {
             config: configClone,

@@ -158,22 +158,21 @@ export const calculateOpacity = (pathData, selectionRectangleYCoords) => {
     return opacityValue >= opacity.MAX_OPACITY_VALUE ? opacity.MIN_OPACITY_VALUE : opacity.MAX_OPACITY_VALUE - opacityValue
 }
 
-export const getClosestRectangleIndex = (baseBand, currentBand) => {
-    const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
+export const getClosestRectangleIndex = (currentBand) => {
+    const {center: selectionRectangleCenter} = calculateSelectionRectangleYCoords();
     let closestDistance = null;
-    let closestId = null;
+    let closestIndex = null;
 
-    currentBand.forEach((rectangle) => {
-        const {id, pathData: {y}} = rectangle;
-        const currentDistance = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleTop, y);
+    currentBand.forEach((rectangle, index) => {
+        const {pathData: {y, height}} = rectangle;
+        const distanceToSelectionRectangleCenter = calculatedDistanceToSelectionRectangleYCoord(selectionRectangleCenter, y + height / 2);
+        if (closestDistance !== null && closestDistance <= distanceToSelectionRectangleCenter) return;
 
-        if (closestDistance !== null && closestDistance <= currentDistance) return;
-
-        closestDistance = currentDistance;
-        closestId = id;
+        closestDistance = distanceToSelectionRectangleCenter;
+        closestIndex = index;
     })
 
-    return baseBand.findIndex((rectangle) => rectangle.id === closestId);
+    return closestIndex;
 }
 
 export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse) => {
