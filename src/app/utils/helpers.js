@@ -175,6 +175,15 @@ export const getClosestRectangleIndex = (currentBand) => {
     return closestIndex;
 }
 
+export const normalizeTranslateY = (props) => {
+    const {band, baseBand, reversedBand, isReverse, translateY} = props;
+    const initialBand = isReverse ? baseBand : reversedBand;
+    const closestRectangleIndex = getClosestRectangleIndex(band);
+    const y = band[0].pathData.y;
+
+    return translateY + (initialBand[closestRectangleIndex].pathData.y - y);
+}
+
 export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse) => {
     const {y, width} = pathData;
     const halfWidth = width / 2;

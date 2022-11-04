@@ -5,7 +5,7 @@ import {Main} from "../Main/styled";
 import {
     calculateResistorWidth,
     getBaseConfig,
-    getClosestRectangleIndex,
+    normalizeTranslateY,
     updateConfig
 } from "../../utils/helpers";
 import useWindowSize from "../../hooks/useWindowSize";
@@ -67,12 +67,18 @@ const App = () => {
             }
         }
 
-        const closestRectangleIndex = getClosestRectangleIndex(band);
-        console.log(closestRectangleIndex)
+        const normalizedTranslateY = normalizeTranslateY({band, baseBand, reversedBand, isReverse, translateY})
+        const updatedConfig = updateConfig({
+            config,
+            baseConfig: isReverse ? reversedConfig : baseConfig,
+            bandId,
+            translateY: normalizedTranslateY,
+            isReverse
+        })
 
         return {
-            config: configClone,
-            translateY,
+            config: updatedConfig,
+            translateY: normalizedTranslateY,
             isReverse,
         }
     }
