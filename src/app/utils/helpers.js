@@ -176,12 +176,28 @@ export const getClosestRectangleIndex = (currentBand) => {
 }
 
 export const normalizeTranslateY = (props) => {
-    const {band, baseBand, reversedBand, isReverse, translateY} = props;
-    const initialBand = isReverse ? baseBand : reversedBand;
+    const {dragData, config, baseConfig, reversedConfig} = props;
+    const {bandId, translateY, bandsReverse} = dragData.current;
+    const band = config[bandId]
+    const isReverse = bandsReverse[bandId] ?? false;
+    const initialConfig = isReverse ? reversedConfig : baseConfig;
+    const initialBand = initialConfig[bandId];
     const closestRectangleIndex = getClosestRectangleIndex(band);
-    const y = band[0].pathData.y;
+    const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
+    let y = band[closestRectangleIndex].pathData.y;
+    let normalizedTranslateY = translateY;
+    const isIncreaseTranslateY = y < selectionRectangleTop
+    const multiplier = isIncreaseTranslateY ? 1 : -1;
 
-    return translateY + (initialBand[closestRectangleIndex].pathData.y - y);
+
+    while (isIncreaseTranslateY ? y < selectionRectangleTop : y > selectionRectangleTop) {
+        normalizedTranslateY += sizes.NORMALIZE_TRANSLATE_Y_STEP * multiplier;
+        const updatedBand = updateBand(initialBand, normalizedTranslateY, isReverse);
+
+        y = updatedBand[closestRectangleIndex].pathData.y;
+    }
+
+    return normalizedTranslateY;
 }
 
 export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse) => {

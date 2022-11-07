@@ -67,7 +67,7 @@ const App = () => {
             }
         }
 
-        const normalizedTranslateY = normalizeTranslateY({band, baseBand, reversedBand, isReverse, translateY})
+        const normalizedTranslateY = normalizeTranslateY(props);
         const updatedConfig = updateConfig({
             config,
             baseConfig: isReverse ? reversedConfig : baseConfig,
