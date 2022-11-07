@@ -184,8 +184,10 @@ export const normalizeTranslateY = (props) => {
     const initialBand = initialConfig[bandId];
     const closestRectangleIndex = getClosestRectangleIndex(band);
     const {top: selectionRectangleTop} = calculateSelectionRectangleYCoords();
+
     let y = band[closestRectangleIndex].pathData.y;
     let normalizedTranslateY = translateY;
+
     const isIncreaseTranslateY = y < selectionRectangleTop
     const multiplier = isIncreaseTranslateY ? 1 : -1;
 
