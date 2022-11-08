@@ -1,7 +1,7 @@
 export const WHITE = '#fff';
 export const SILVER = '#c0c0c0';
-export const LIGHT_SILVER = '#d7d7d7'
-export const GOLD = '#ffd700'
+export const LIGHT_SILVER = '#d7d7d7';
+export const GOLD = '#ffd700';
 export const BLACK = '#000';
 export const BROWN = '#964b00';
 export const RED = '#f00';
