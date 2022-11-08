@@ -1,7 +1,8 @@
-import * as sizes from '../consts/sizes';
-import * as opacity from '../consts/opacity';
-import * as deformationTypes from '../consts/deformationTypes';
 import uniqid from 'uniqid';
+
+import * as deformationTypes from '../consts/deformationTypes';
+import * as opacity from '../consts/opacity';
+import * as sizes from '../consts/sizes';
 
 const convertHexToRGBA = (hexCode, opacity = 1) => {
     let hex = hexCode.replace('#', '');
@@ -183,7 +184,7 @@ export const getClosestRectangleIndex = (currentBand) => {
 
 export const updateConfigInRange = (props) => {
     const { dragData, config, baseConfig, reversedConfig } = props;
-    const { bandId, translateY, bandsReverse } = dragData.current;
+    const { bandId, bandsReverse } = dragData.current;
     const configClone = [...config];
     const band = config[bandId];
     const baseBand = baseConfig[bandId];

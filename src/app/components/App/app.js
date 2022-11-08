@@ -1,12 +1,13 @@
-import BackgroundGradient from '../BackgroundGradient/backgroundGradient';
-import Resistor from '../Resistor/resistor';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Main } from '../Main/styled';
-import { calculateResistorWidth, getBaseConfig, updateConfigInRange, updateConfig } from '../../utils/helpers';
-import useWindowSize from '../../hooks/useWindowSize';
-import * as resistorConfigs from '../../consts/resistorConfigs';
+
 import * as cursorTypes from '../../consts/cursorTypes';
+import * as resistorConfigs from '../../consts/resistorConfigs';
 import * as sizes from '../../consts/sizes';
+import useWindowSize from '../../hooks/useWindowSize';
+import { calculateResistorWidth, getBaseConfig, updateConfig, updateConfigInRange } from '../../utils/helpers';
+import BackgroundGradient from '../BackgroundGradient/backgroundGradient';
+import { Main } from '../Main/styled';
+import Resistor from '../Resistor/resistor';
 
 const App = () => {
     const windowSize = useWindowSize();

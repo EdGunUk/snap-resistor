@@ -1,6 +1,7 @@
-import { Container, Rect, Stop } from './styled';
-import * as colors from '../../styled/settings/colors';
 import { useLayoutEffect } from 'react';
+
+import * as colors from '../../styled/settings/colors';
+import { Container, Rect, Stop } from './styled';
 
 const BackgroundGradient = () => {
     useLayoutEffect(() => {
