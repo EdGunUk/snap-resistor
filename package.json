@@ -4,8 +4,10 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "format": "prettier --write src/",
-    "format-check": "prettier --check src/"
+    "format": "yarn run prettier --write src/",
+    "format-check": "yarn run prettier --check src/",
+    "lint": "yarn run eslint src/",
+    "lint-fix": "npm run lint --fix src/"
   },
   "browserslist": {
     "production": [
@@ -30,6 +32,8 @@
     "uniqid": "^5.4.0"
   },
   "devDependencies": {
+    "eslint": "^8.27.0",
+    "eslint-plugin-react": "^7.31.10",
     "prettier": "2.7.1"
   }
 }
