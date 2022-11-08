@@ -5,7 +5,7 @@ import {Main} from "../Main/styled";
 import {
     calculateResistorWidth,
     getBaseConfig,
-    normalizeTranslateY,
+    updateConfigInRange,
     updateConfig
 } from "../../utils/helpers";
 import useWindowSize from "../../hooks/useWindowSize";
@@ -33,55 +33,6 @@ const App = () => {
     useEffect(() => {
         setConfig((config) => updateConfig({baseConfig, config}));
     }, [baseConfig])
-
-    const updateConfigInRange = (props) => {
-        const {dragData, config, baseConfig, reversedConfig} = props;
-        const {bandId, translateY, bandsReverse} = dragData.current;
-        const configClone = [...config];
-        const band = config[bandId]
-        const baseBand = baseConfig[bandId]
-        const reversedBand = reversedConfig[bandId];
-        const isReverse = bandsReverse[bandId] ?? false;
-        const topIndex = isReverse ? 0 : band.length - 1;
-        const bottomIndex = isReverse ? band.length - 1 : 0;
-        const isOutOfTopRange = band[topIndex].pathData.y < reversedBand[0].pathData.y;
-        const isOutOfBottomRange = band[bottomIndex].pathData.y > baseBand[0].pathData.y;
-
-        if (isOutOfBottomRange) {
-            configClone[bandId] = baseBand;
-
-            return {
-                config: configClone,
-                translateY: 0,
-                isReverse: false
-            }
-        }
-
-        if (isOutOfTopRange) {
-            configClone[bandId] = reversedBand;
-
-            return {
-                config: configClone,
-                translateY: 0,
-                isReverse: true
-            }
-        }
-
-        const normalizedTranslateY = normalizeTranslateY(props);
-        const updatedConfig = updateConfig({
-            config,
-            baseConfig: isReverse ? reversedConfig : baseConfig,
-            bandId,
-            translateY: normalizedTranslateY,
-            isReverse
-        })
-
-        return {
-            config: updatedConfig,
-            translateY: normalizedTranslateY,
-            isReverse,
-        }
-    }
 
 
     const handlePointerDown = (e) => {
