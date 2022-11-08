@@ -4,10 +4,11 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "format": "yarn run prettier --write src/",
-    "format-check": "yarn run prettier --check src/",
-    "lint": "yarn run eslint src/",
-    "lint-fix": "npm run lint --fix src/"
+    "prettier": "prettier src/",
+    "format": "yarn run prettier --write",
+    "format-check": "yarn run prettier --check",
+    "lint": "eslint src/",
+    "lint-fix": "yarn run lint --fix"
   },
   "browserslist": {
     "production": [
