@@ -65,10 +65,19 @@ const App = () => {
 
     const handlePointerUp = () => {
         const { current } = dragData;
-        const { bandId, bandsEndTranslateY, bandsReverse } = current;
+        const { bandId, translateY, bandsEndTranslateY, bandsReverse } = current;
         if (!bandId) return;
 
-        const updatedConfigInRange = updateConfigInRange({ dragData, config, baseConfig, reversedConfig });
+        const isReverse = bandsReverse[bandId] ?? false;
+
+        const updatedConfigInRange = updateConfigInRange({
+            config,
+            baseConfig,
+            reversedConfig,
+            bandId,
+            translateY,
+            isReverse,
+        });
 
         setCursor(cursorTypes.AUTO);
         setConfig(updatedConfigInRange.config);
