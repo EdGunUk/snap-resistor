@@ -54,7 +54,8 @@ const App = () => {
         setConfig((config) =>
             updateConfig({
                 config,
-                baseConfig: isReverse ? reversedConfig : baseConfig,
+                baseConfig,
+                reversedConfig,
                 bandId,
                 translateY,
                 isReverse,

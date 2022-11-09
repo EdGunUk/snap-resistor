@@ -214,13 +214,7 @@ export const updateConfigInRange = (props) => {
     }
 
     const normalizedTranslateY = normalizeTranslateY(props);
-    const updatedConfig = updateConfig({
-        config,
-        baseConfig: isReverse ? reversedConfig : baseConfig,
-        bandId,
-        translateY: normalizedTranslateY,
-        isReverse,
-    });
+    const updatedConfig = updateConfig({ ...props, translateY: normalizedTranslateY });
 
     return {
         config: updatedConfig,
@@ -377,14 +371,15 @@ export const getBaseBand = (band, initialPathData, isReverse) => {
 };
 
 export const updateConfig = (props) => {
-    const { baseConfig, config, bandId, translateY, isReverse } = props;
+    const { config, baseConfig, reversedConfig, bandId, translateY, isReverse } = props;
     const isNeedUpdateCurrentBand = 'bandId' in props && 'translateY' in props;
 
     if (isNeedUpdateCurrentBand) {
         const configClone = [...config];
-        const baseBand = baseConfig[bandId];
+        const initialConfig = isReverse ? reversedConfig : baseConfig;
+        const initialBand = initialConfig[bandId];
 
-        configClone[bandId] = updateBand(baseBand, translateY, isReverse);
+        configClone[bandId] = updateBand(initialBand, translateY, isReverse);
 
         return configClone;
     }
