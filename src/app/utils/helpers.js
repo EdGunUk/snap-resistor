@@ -226,8 +226,8 @@ export const updateConfigInRange = (props) => {
 export const normalizeTranslateY = (props) => {
     const { config, baseConfig, reversedConfig, bandId, translateY, isReverse } = props;
     const band = config[bandId];
-    const initialConfig = isReverse ? reversedConfig : baseConfig;
-    const initialBand = initialConfig[bandId];
+    const baseBand = baseConfig[bandId];
+    const reversedBand = reversedConfig[bandId];
     const closestRectangleIndex = getClosestRectangleIndex(band);
     const { top: selectionRectangleTop } = calculateSelectionRectangleYCoords();
 
@@ -239,7 +239,7 @@ export const normalizeTranslateY = (props) => {
 
     while (isIncreaseTranslateY ? y < selectionRectangleTop : y > selectionRectangleTop) {
         normalizedTranslateY += sizes.NORMALIZE_TRANSLATE_Y_STEP * multiplier;
-        const updatedBand = updateBand(initialBand, normalizedTranslateY, isReverse);
+        const updatedBand = updateBand({ baseBand, reversedBand, translateY: normalizedTranslateY, isReverse });
 
         y = updatedBand[closestRectangleIndex].pathData.y;
     }
@@ -308,7 +308,9 @@ export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse
     };
 };
 
-export const updateBand = (band, translateY, isReverse) => {
+export const updateBand = (props) => {
+    const { baseBand, reversedBand, translateY, isReverse } = props;
+    const band = isReverse ? reversedBand : baseBand;
     if (band.length === 0) return band;
 
     const selectionRectangleYCoords = calculateSelectionRectangleYCoords();
@@ -376,10 +378,10 @@ export const updateConfig = (props) => {
 
     if (isNeedUpdateCurrentBand) {
         const configClone = [...config];
-        const initialConfig = isReverse ? reversedConfig : baseConfig;
-        const initialBand = initialConfig[bandId];
+        const baseBand = baseConfig[bandId];
+        const reversedBand = reversedConfig[bandId];
 
-        configClone[bandId] = updateBand(initialBand, translateY, isReverse);
+        configClone[bandId] = updateBand({ baseBand, reversedBand, translateY, isReverse });
 
         return configClone;
     }
