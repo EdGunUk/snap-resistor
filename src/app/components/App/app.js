@@ -82,6 +82,7 @@ const App = () => {
 
         setCursor(cursorTypes.AUTO);
         setConfig(updatedConfigInRange.config);
+        current.translateY = updatedConfigInRange.translateY;
         bandsEndTranslateY[bandId] = updatedConfigInRange.translateY;
         bandsReverse[bandId] = updatedConfigInRange.isReverse;
         current.bandId = null;
