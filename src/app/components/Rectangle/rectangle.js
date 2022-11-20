@@ -1,4 +1,4 @@
-import { calculatePath } from '../../utils/helpers';
+import { calculatePath } from '../../utils/resistor';
 
 const Rectangle = ({ id, fill, pathData }) => {
     const path = calculatePath(pathData);

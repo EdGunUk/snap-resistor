@@ -4,7 +4,7 @@ import * as cursorTypes from '../../consts/cursorTypes';
 import * as resistorConfigs from '../../consts/resistorConfigs';
 import * as sizes from '../../consts/sizes';
 import useWindowSize from '../../hooks/useWindowSize';
-import { calculateResistorWidth, getBaseConfig, updateConfig, updateConfigInRange } from '../../utils/helpers';
+import { calculateResistorWidth, getBaseConfig, updateConfig, updateConfigInRange } from '../../utils/resistor';
 import BackgroundGradient from '../BackgroundGradient/backgroundGradient';
 import { Main } from '../Main/styled';
 import Resistor from '../Resistor/resistor';
@@ -49,7 +49,10 @@ const App = () => {
 
         const isReverse = bandsReverse[bandId] ?? false;
         const endTranslateY = bandsEndTranslateY[bandId] ?? 0;
+        const prevTranslateY = current.translateY;
         const translateY = e.clientY - startClientY + endTranslateY;
+
+        console.log(translateY, prevTranslateY, endTranslateY);
 
         setConfig((config) =>
             updateConfig({
