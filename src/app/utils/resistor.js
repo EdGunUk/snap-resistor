@@ -273,8 +273,14 @@ export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse
             newY = y - height;
         }
 
-        const deformationBottom = calculateRectangleDeformation(distanceToSelectionRectangleBottom, halfWidth);
-        const deformationTop = calculateRectangleDeformation(distanceToSelectionRectangleTop, halfWidth);
+        const deformationBottom = calculateRectangleDeformation(
+            calculatedDistanceToSelectionRectangleYCoord(selectionRectangleCenter, newY),
+            halfWidth
+        );
+        const deformationTop = calculateRectangleDeformation(
+            calculatedDistanceToSelectionRectangleYCoord(selectionRectangleCenter, y),
+            halfWidth
+        );
 
         return {
             ...pathData,
@@ -297,8 +303,14 @@ export const calculatePathData = (pathData, selectionRectangleYCoords, isReverse
         height = calculateRectangleHeight(distanceToSelectionRectangleBottom);
     }
 
-    const deformationBottom = calculateRectangleDeformation(distanceToSelectionRectangleBottom, halfWidth);
-    const deformationTop = calculateRectangleDeformation(distanceToSelectionRectangleTop, halfWidth);
+    const deformationBottom = calculateRectangleDeformation(
+        calculatedDistanceToSelectionRectangleYCoord(selectionRectangleCenter, y),
+        halfWidth
+    );
+    const deformationTop = calculateRectangleDeformation(
+        calculatedDistanceToSelectionRectangleYCoord(selectionRectangleCenter, newY),
+        halfWidth
+    );
 
     return {
         ...pathData,
