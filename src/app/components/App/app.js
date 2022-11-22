@@ -5,6 +5,7 @@ import * as resistorConfigs from '../../consts/resistorConfigs';
 import * as sizes from '../../consts/sizes';
 import useDragData from '../../hooks/useDragData';
 import useWindowSize from '../../hooks/useWindowSize';
+import { animate, linear } from '../../utils/animation';
 import { calculateResistorWidth, getBaseConfig, updateConfig, updateConfigInRange } from '../../utils/resistor';
 import BackgroundGradient from '../BackgroundGradient/backgroundGradient';
 import { Main } from '../Main/styled';
@@ -39,8 +40,19 @@ const App = () => {
         const { bandId } = getDragData();
         if (!bandId) return;
 
-        const { isReverse, startClientY, endTranslateY } = getDragData(bandId);
+        // eslint-disable-next-line no-unused-vars
+        const { isReverse, startClientY, translateY: prevTranslateY, endTranslateY } = getDragData(bandId);
         const translateY = e.clientY - startClientY + endTranslateY;
+
+        // console.log(translateY, prevTranslateY);
+        // animate({
+        //     from: translateY,
+        //     to: prevTranslateY,
+        //     draw: (t) => console.log('draw', t),
+        //     duration: 200,
+        //     easing: linear,
+        //     callback: () => console.log('finish'),
+        // });
 
         setConfig((config) =>
             updateConfig({
@@ -75,6 +87,17 @@ const App = () => {
             translateY: updatedConfigInRange.translateY,
             endTranslateY: updatedConfigInRange.translateY,
         };
+
+        console.log(translateY, updatedConfigInRange.translateY);
+
+        animate({
+            from: translateY,
+            to: updatedConfigInRange.translateY,
+            draw: (t) => console.log('draw', t),
+            duration: 200,
+            easing: linear,
+            callback: () => console.log('finish'),
+        });
 
         setCursor(cursorTypes.AUTO);
         setConfig(updatedConfigInRange.config);

@@ -1,19 +1,27 @@
-export const animate = ({ timing, draw, duration }) => {
+export const recalculateRange = ({ value, from, to }) => {
+    // const { value, inMin, inMax, outMin, outMax } = props;
+    // return ((value - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin;
+
+    return from + value * (to - from);
+};
+
+export const animate = ({ from, to, draw, duration, easing, callback }) => {
     const start = performance.now();
 
     const animate = (time) => {
-        // timeFraction изменяется от 0 до 1
-        let timeFraction = (time - start) / duration;
-        if (timeFraction > 1) timeFraction = 1;
+        const timeFraction = (time - start) / duration;
+        let timeFractionInRange = timeFraction < 0 ? 0 : timeFraction;
 
-        // вычисление текущего состояния анимации
-        let progress = timing(timeFraction);
+        if (timeFractionInRange > 1) timeFractionInRange = 1;
 
-        draw(progress); // отрисовать её
+        const progress = easing(timeFractionInRange);
+        const progressInRange = recalculateRange({ value: progress, from, to });
 
-        if (timeFraction < 1) {
-            requestAnimationFrame(animate);
-        }
+        draw(progressInRange);
+
+        if (timeFractionInRange === 1) callback?.();
+
+        if (timeFractionInRange < 1) requestAnimationFrame(animate);
     };
 
     requestAnimationFrame(animate);
