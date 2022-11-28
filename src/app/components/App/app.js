@@ -99,12 +99,10 @@ const App = () => {
             console.log('finish');
         };
 
-        console.log(translateY, normalizedDragData.translateY);
-
         const animateObj = animate({
             from: translateY,
             to: normalizedDragData.translateY,
-            duration: 3000,
+            duration: 200,
             easing: linear,
             draw,
             callback,

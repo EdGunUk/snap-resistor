@@ -14,7 +14,6 @@ const GlobalStyle = createGlobalStyle`
     -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
     -webkit-touch-callout: none;
   }
-  
 `;
 
 export default GlobalStyle;
