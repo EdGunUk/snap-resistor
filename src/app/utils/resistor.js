@@ -182,9 +182,8 @@ export const getClosestRectangleIndex = (currentBand) => {
     return closestIndex;
 };
 
-export const updateConfigInRange = (props) => {
+export const normalizeDragData = (props) => {
     const { config, baseConfig, reversedConfig, bandId, isReverse } = props;
-    const configClone = [...config];
     const band = config[bandId];
     const baseBand = baseConfig[bandId];
     const reversedBand = reversedConfig[bandId];
@@ -194,31 +193,21 @@ export const updateConfigInRange = (props) => {
     const isOutOfBottomRange = band[bottomIndex].pathData.y > baseBand[0].pathData.y;
 
     if (isOutOfBottomRange) {
-        configClone[bandId] = baseBand;
-
         return {
-            config: configClone,
             translateY: 0,
             isReverse: false,
         };
     }
 
     if (isOutOfTopRange) {
-        configClone[bandId] = reversedBand;
-
         return {
-            config: configClone,
             translateY: 0,
             isReverse: true,
         };
     }
 
-    const normalizedTranslateY = normalizeTranslateY(props);
-    const updatedConfig = updateConfig({ ...props, translateY: normalizedTranslateY });
-
     return {
-        config: updatedConfig,
-        translateY: normalizedTranslateY,
+        translateY: normalizeTranslateY(props),
         isReverse,
     };
 };

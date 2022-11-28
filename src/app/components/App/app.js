@@ -6,7 +6,7 @@ import * as sizes from '../../consts/sizes';
 import useDragData from '../../hooks/useDragData';
 import useWindowSize from '../../hooks/useWindowSize';
 import { animate, linear } from '../../utils/animation';
-import { calculateResistorWidth, getBaseConfig, updateConfig, updateConfigInRange } from '../../utils/resistor';
+import { calculateResistorWidth, getBaseConfig, normalizeDragData, updateConfig } from '../../utils/resistor';
 import BackgroundGradient from '../BackgroundGradient/backgroundGradient';
 import { Main } from '../Main/styled';
 import Resistor from '../Resistor/resistor';
@@ -65,8 +65,7 @@ const App = () => {
         if (!bandId) return;
 
         const { isReverse, translateY } = getDragData(bandId);
-        const updatedConfigInRange = updateConfigInRange({
-            // TODO: refactor updateConfigInRange func
+        const normalizedDragData = normalizeDragData({
             config,
             baseConfig,
             reversedConfig,
@@ -76,7 +75,6 @@ const App = () => {
         });
 
         const draw = (translateY) => {
-            console.log('draw', translateY);
             setConfig((config) =>
                 updateConfig({
                     config,
@@ -84,13 +82,14 @@ const App = () => {
                     reversedConfig,
                     bandId,
                     translateY,
-                    isReverse,
+                    isReverse: normalizedDragData.isReverse,
                 })
             );
 
             const props = {
                 translateY,
                 endTranslateY: translateY,
+                isReverse: normalizedDragData.isReverse,
             };
 
             setDragData(bandId, props, true);
@@ -100,22 +99,19 @@ const App = () => {
             console.log('finish');
         };
 
+        console.log(translateY, normalizedDragData.translateY);
+
         const animateObj = animate({
             from: translateY,
-            to: updatedConfigInRange.translateY,
+            to: normalizedDragData.translateY,
             duration: 3000,
             easing: linear,
             draw,
             callback,
         });
 
-        const props = {
-            isReverse: updatedConfigInRange.isReverse, // TODO: check why doesn't work correctly in reverse side
-            animateObj,
-        };
-
         setCursor(cursorTypes.AUTO);
-        setDragData(bandId, props);
+        setDragData(bandId, { animateObj });
         setDragData(null);
     };
 
