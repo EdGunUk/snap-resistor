@@ -7,8 +7,11 @@ export const recalculateRange = ({ value, from, to }) => {
 
 export const animate = ({ from, to, draw, duration, easing, callback }) => {
     const start = performance.now();
+    let isContinue = true;
 
     const animate = (time) => {
+        if (!isContinue) return;
+
         const timeFraction = (time - start) / duration;
         let timeFractionInRange = timeFraction < 0 ? 0 : timeFraction;
 
@@ -24,7 +27,13 @@ export const animate = ({ from, to, draw, duration, easing, callback }) => {
         if (timeFractionInRange < 1) requestAnimationFrame(animate);
     };
 
+    const stop = () => {
+        isContinue = false;
+    };
+
     requestAnimationFrame(animate);
+
+    return { stop };
 };
 
 export const linear = (timeFraction) => timeFraction;

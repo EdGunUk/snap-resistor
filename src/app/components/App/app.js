@@ -32,6 +32,9 @@ const App = () => {
         const bandId = band?.getAttribute('data-band-id');
         if (!bandId) return;
 
+        const { animateObj: prevAnimateObj } = getDragData(bandId);
+
+        prevAnimateObj?.stop();
         setCursor(cursorTypes.NS_RESIZE);
         setDragData(bandId, { startClientY: e.clientY });
     };
@@ -40,19 +43,8 @@ const App = () => {
         const { bandId } = getDragData();
         if (!bandId) return;
 
-        // eslint-disable-next-line no-unused-vars
-        const { isReverse, startClientY, translateY: prevTranslateY, endTranslateY } = getDragData(bandId);
+        const { isReverse, startClientY, endTranslateY } = getDragData(bandId);
         const translateY = e.clientY - startClientY + endTranslateY;
-
-        // console.log(translateY, prevTranslateY);
-        // animate({
-        //     from: translateY,
-        //     to: prevTranslateY,
-        //     draw: (t) => console.log('draw', t),
-        //     duration: 200,
-        //     easing: linear,
-        //     callback: () => console.log('finish'),
-        // });
 
         setConfig((config) =>
             updateConfig({
@@ -74,6 +66,7 @@ const App = () => {
 
         const { isReverse, translateY } = getDragData(bandId);
         const updatedConfigInRange = updateConfigInRange({
+            // TODO: refactor updateConfigInRange func
             config,
             baseConfig,
             reversedConfig,
@@ -82,25 +75,46 @@ const App = () => {
             isReverse,
         });
 
-        const props = {
-            isReverse: updatedConfigInRange.isReverse,
-            translateY: updatedConfigInRange.translateY,
-            endTranslateY: updatedConfigInRange.translateY,
+        const draw = (translateY) => {
+            console.log('draw', translateY);
+            setConfig((config) =>
+                updateConfig({
+                    config,
+                    baseConfig,
+                    reversedConfig,
+                    bandId,
+                    translateY,
+                    isReverse,
+                })
+            );
+
+            const props = {
+                translateY,
+                endTranslateY: translateY,
+            };
+
+            setDragData(bandId, props, true);
         };
 
-        console.log(translateY, updatedConfigInRange.translateY);
+        const callback = () => {
+            console.log('finish');
+        };
 
-        animate({
+        const animateObj = animate({
             from: translateY,
             to: updatedConfigInRange.translateY,
-            draw: (t) => console.log('draw', t),
-            duration: 200,
+            duration: 3000,
             easing: linear,
-            callback: () => console.log('finish'),
+            draw,
+            callback,
         });
 
+        const props = {
+            isReverse: updatedConfigInRange.isReverse, // TODO: check why doesn't work correctly in reverse side
+            animateObj,
+        };
+
         setCursor(cursorTypes.AUTO);
-        setConfig(updatedConfigInRange.config);
         setDragData(bandId, props);
         setDragData(null);
     };

@@ -17,13 +17,16 @@ const useDragData = () => {
             startClientY: bandData.startClientY ?? 0,
             translateY: bandData.translateY ?? 0,
             endTranslateY: bandData.endTranslateY ?? 0,
+            animateObj: bandData.animateObj,
         };
     };
 
-    const setDragData = (bandId, props) => {
+    const setDragData = (bandId, props, isUpdateBandData) => {
         const { current } = dragData;
 
-        current.bandId = bandId;
+        if (!isUpdateBandData) {
+            current.bandId = bandId;
+        }
 
         if (bandId !== null && typeof props === 'object') {
             current.bandsData[bandId] = {
