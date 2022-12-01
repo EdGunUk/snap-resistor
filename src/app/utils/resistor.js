@@ -18,17 +18,18 @@ const convertHexToRGBA = (hexCode, opacity = 1) => {
     return `rgba(${r},${g},${b},${opacity})`;
 };
 
-export const calculateResistorValue = (props) => {
-    const mappedProps = Object.fromEntries(
-        Object.entries(props).map(([key, value]) => [key, value === null ? value : value.toString()])
-    );
-    const { firstBandValue, secondBandValue, thirdBandValue, multiplierValue } = mappedProps;
-    const totalBandValue =
-        thirdBandValue === null
-            ? firstBandValue + secondBandValue
-            : firstBandValue + secondBandValue + '.' + thirdBandValue;
+export const calculateResistorValue = (config) => {
+    const closestRectangleConfig = config.map((band) => band[getClosestRectangleIndex(band)]);
+    const firstResistanceValue = closestRectangleConfig.at(0).value.toString();
+    const secondResistanceValue = closestRectangleConfig.at(1).value.toString();
+    const multiplierBand = closestRectangleConfig.at(-2);
 
-    return totalBandValue * multiplierValue;
+    return {
+        resistance: Number(((firstResistanceValue + secondResistanceValue) * multiplierBand.value).toFixed(2)),
+        // resistance: Math.round((firstResistanceValue + secondResistanceValue) * multiplierBand.value * 100) / 100,
+        tolerance: closestRectangleConfig.at(-1).value,
+        unit: multiplierBand.unit,
+    };
 };
 
 export const calculateResistorWidth = (windowWidth) => {

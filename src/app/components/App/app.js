@@ -3,10 +3,17 @@ import { useEffect, useMemo, useState } from 'react';
 import * as cursorTypes from '../../consts/cursorTypes';
 import * as resistorConfigs from '../../consts/resistorConfigs';
 import * as sizes from '../../consts/sizes';
+import * as units from '../../consts/units';
 import useDragData from '../../hooks/useDragData';
 import useWindowSize from '../../hooks/useWindowSize';
 import { animate, linear } from '../../utils/animation';
-import { calculateResistorWidth, getBaseConfig, normalizeDragData, updateConfig } from '../../utils/resistor';
+import {
+    calculateResistorValue,
+    calculateResistorWidth,
+    getBaseConfig,
+    normalizeDragData,
+    updateConfig,
+} from '../../utils/resistor';
 import BackgroundGradient from '../BackgroundGradient/backgroundGradient';
 import { Main } from '../Main/styled';
 import Resistor from '../Resistor/resistor';
@@ -22,6 +29,12 @@ const App = () => {
     );
     const [cursor, setCursor] = useState(cursorTypes.AUTO);
     const [config, setConfig] = useState(baseConfig);
+    const [resistorData, setResistorData] = useState({
+        resistance: 0,
+        tolerance: 1,
+        unit: units.OHM,
+    });
+    const { resistance, unit } = resistorData;
 
     useEffect(() => {
         setConfig((config) => updateConfig({ baseConfig, config }));
@@ -96,7 +109,7 @@ const App = () => {
         };
 
         const callback = () => {
-            console.log('finish');
+            setResistorData(calculateResistorValue(config));
         };
 
         const animateObj = animate({
@@ -120,6 +133,9 @@ const App = () => {
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
         >
+            <div>
+                {resistance} {unit}
+            </div>
             <BackgroundGradient />
             <Resistor height={sizes.RESISTOR_HEIGHT} width={resistorWidth} config={config} />
         </Main>

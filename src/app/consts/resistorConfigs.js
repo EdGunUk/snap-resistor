@@ -62,37 +62,37 @@ const MULTIPLIER = [
     },
     {
         color: colors.ORANGE,
-        unit: units.KILO_OHM,
+        unit: units.K_OHM,
         value: 1,
     },
     {
         color: colors.YELLOW,
-        unit: units.KILO_OHM,
+        unit: units.K_OHM,
         value: 10,
     },
     {
         color: colors.GREEN,
-        unit: units.KILO_OHM,
+        unit: units.K_OHM,
         value: 100,
     },
     {
         color: colors.BLUE,
-        unit: units.MEGA_OHM,
+        unit: units.M_OHM,
         value: 1,
     },
     {
         color: colors.PURPLE,
-        unit: units.MEGA_OHM,
+        unit: units.M_OHM,
         value: 10,
     },
     {
         color: colors.GRAY,
-        unit: units.MEGA_OHM,
+        unit: units.M_OHM,
         value: 100,
     },
     {
         color: colors.WHITE,
-        unit: units.GIGA_OHM,
+        unit: units.G_OHM,
         value: 1,
     },
     {
