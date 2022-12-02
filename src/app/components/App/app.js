@@ -8,7 +8,7 @@ import useDragData from '../../hooks/useDragData';
 import useWindowSize from '../../hooks/useWindowSize';
 import { animate, linear } from '../../utils/animation';
 import {
-    calculateResistorValue,
+    calculateResistorData,
     calculateResistorWidth,
     getBaseConfig,
     normalizeDragData,
@@ -109,7 +109,7 @@ const App = () => {
         };
 
         const callback = () => {
-            setResistorData(calculateResistorValue(config));
+            setResistorData(calculateResistorData(config));
         };
 
         const animateObj = animate({

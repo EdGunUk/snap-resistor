@@ -3,6 +3,8 @@ import uniqid from 'uniqid';
 import * as deformationTypes from '../consts/deformationTypes';
 import * as opacity from '../consts/opacity';
 import * as sizes from '../consts/sizes';
+import * as units from '../consts/units';
+import { addZeroes } from './number';
 
 const convertHexToRGBA = (hexCode, opacity = 1) => {
     let hex = hexCode.replace('#', '');
@@ -18,18 +20,44 @@ const convertHexToRGBA = (hexCode, opacity = 1) => {
     return `rgba(${r},${g},${b},${opacity})`;
 };
 
-export const calculateResistorValue = (config) => {
+export const validateResistorData = (props) => {
+    const { resistance, tolerance, unit } = props;
+    let validatedResistance = resistance;
+    let validatedUnit = unit;
+
+    if (resistance >= 1000) {
+        const unitArr = [units.OHM, units.K_OHM, units.M_OHM, units.G_OHM];
+        const unitIndex = unitArr.findIndex((unit) => unit === validatedUnit);
+
+        validatedResistance /= 1000;
+        validatedUnit = unitArr[unitIndex + 1];
+    }
+
+    if (resistance === 0) {
+        validatedUnit = units.OHM;
+    }
+
+    return {
+        resistance: addZeroes(validatedResistance, 1),
+        tolerance: addZeroes(tolerance, 1),
+        unit: validatedUnit,
+    };
+};
+
+export const calculateResistorData = (config) => {
     const closestRectangleConfig = config.map((band) => band[getClosestRectangleIndex(band)]);
     const firstResistanceValue = closestRectangleConfig.at(0).value.toString();
     const secondResistanceValue = closestRectangleConfig.at(1).value.toString();
     const multiplierBand = closestRectangleConfig.at(-2);
 
-    return {
+    const data = {
         resistance: Number(((firstResistanceValue + secondResistanceValue) * multiplierBand.value).toFixed(2)),
         // resistance: Math.round((firstResistanceValue + secondResistanceValue) * multiplierBand.value * 100) / 100,
         tolerance: closestRectangleConfig.at(-1).value,
         unit: multiplierBand.unit,
     };
+
+    return validateResistorData(data);
 };
 
 export const calculateResistorWidth = (windowWidth) => {
