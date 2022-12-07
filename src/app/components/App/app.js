@@ -34,7 +34,7 @@ const App = () => {
         tolerance: 1,
         unit: units.OHM,
     });
-    const { resistance, unit } = resistorData;
+    const { resistance, tolerance, unit } = resistorData;
 
     useEffect(() => {
         setConfig((config) => updateConfig({ baseConfig, config }));
@@ -136,6 +136,7 @@ const App = () => {
             <div>
                 {resistance} {unit}
             </div>
+            <div>{tolerance}</div>
             <BackgroundGradient />
             <Resistor height={sizes.RESISTOR_HEIGHT} width={resistorWidth} config={config} />
         </Main>
